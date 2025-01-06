@@ -31,7 +31,7 @@ const Landing = () => {
         {/* Explore Now Button */}
         <Link
           to="/home"
-          className="inline-block px-8 py-3 bg-gradient-to-r from-[#00bcd4] to-[#316bff] text-white text-xl font-semibold rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-[#00bcd4] focus:ring-opacity-50"
+          className="inline-block px-6 py-3 bg-gradient-to-r from-[#00bcd4] to-[#316bff] text-white text-xl font-semibold rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-[#00bcd4] focus:ring-opacity-50"
         >
           Explore Now
         </Link>

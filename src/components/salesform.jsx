@@ -45,8 +45,9 @@ function SalesForm() {
     setIsModalOpen(true);
     setIsLoading(true);
   
-    // Prepare the data to be sent
+    // Prepare the data to be sent, including the dynamically generated visitCode
     const data = {
+      visitCode: visitCode, // Add the visitCode here
       collegeName: formData.collegeName,
       city: formData.city,
       clientName: formData.clientName,
@@ -64,7 +65,7 @@ function SalesForm() {
     };
   
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbzzlaqpzxnwQA-pCRhcVqjY-Xz2VjUV1ANxLhfuUV-5IVP9b4jnhzwLdmo1PMVgxZo/exec', {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbwlm0MkEyIQOdIMKKW92BL19WX_XGizY0XykR9AoDIIuWoVJheb1Yxt7Z4a6IOSwr4/exec', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

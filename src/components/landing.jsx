@@ -28,13 +28,12 @@ const Landing = () => {
           Keep Your <span className="underline decoration-[#00bcd4]">Sales</span>, <span className="underline decoration-[#00bcd4]">Placement</span>, and Travel Activities Organized with a Single Tap.
         </div>
 
-        {/* Circular CTA Button */}
+        {/* Explore Now Button */}
         <Link
           to="/home"
-          className="flex items-center justify-center w-16 h-16 sm:w-24 sm:h-24 bg-transparent border-4 border-[#00bcd4] text-[#00bcd4] rounded-full text-2xl font-bold hover:scale-110 transform transition-all duration-300 ease-in-out shadow-lg focus:ring-4 focus:ring-[#00bcd4] focus:ring-opacity-50"
+          className="inline-block px-8 py-3 bg-gradient-to-r from-[#00bcd4] to-[#316bff] text-white text-xl font-semibold rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-[#00bcd4] focus:ring-opacity-50"
         >
-          {/* Increase the font size of the arrow */}
-          <span className="text-[#00bcd4] text-4xl">&#8594;</span> {/* Right-pointing arrow */}
+          Explore Now
         </Link>
       </div>
     </div>

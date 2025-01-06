@@ -6,7 +6,7 @@ import Placement from "./components/placement"; // Import Placement component
 import Navbar from './components/navbar'; // Import Navbar component
 import Dashboard from "./components/dashboard";
 import Spent from './components/spent';
-import Landing from './components/Landing'; // Import Landing component
+import Landing from './components/landing'; // Import Landing component
 
 const App = () => {
   return (

@@ -81,7 +81,7 @@ function SalesForm() {
     navigate('/');
   };
 
-  const formClass = 'bg-white  p-8 max-w-3xl w-full';
+  const formClass = 'bg-white  p-8 max-w-3xl w-full font-inter';
   const inputClass = 'mt-2 p-3 w-full bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500';
   const buttonClass = 'bg-white text-teal-500 border border-teal-500 hover:bg-teal-500 hover:text-white hover:border-teal-600 transition duration-300 px-6 py-3 font-semibold rounded-lg w-full';
 

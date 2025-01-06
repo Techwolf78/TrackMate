@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 const Landing = () => {
   return (
-    <div className="relative w-full h-screen bg-no-repeat bg-cover bg-center" style={{ backgroundImage: "url('mob-loc.jpg')" }}>
+    <div className="relative w-full h-screen font-inter bg-no-repeat bg-cover bg-center" style={{ backgroundImage: "url('mob-loc.jpg')" }}>
       
       {/* Black overlay with some transparency for a modern touch */}
       <div className="absolute inset-0 bg-black opacity-60"></div> 

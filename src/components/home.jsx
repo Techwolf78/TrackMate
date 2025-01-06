@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"; // Import Link from react-router-dom
 
 const Home = () => {
   return (
-    <div className="bg-[#ffffff]  relative">
+    <div className="bg-[#ffffff]  relative font-inter">
       {/* Blue Container for Top 40% */}
       <div className="bg-gradient-to-b from-[#f9fcf7] to-[#e9f9fb] h-auto flex flex-col items-center justify-center mb-4 rounded-br-3xl rounded-bl-3xl ">
   {/* Company Logo positioned in the top-left corner */}

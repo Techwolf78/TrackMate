@@ -12,7 +12,7 @@ const Navbar = () => {
   const isProfileActive = location.pathname === '/profile';
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-gray-800 text-white flex justify-around items-center py-2 z-50 shadow-lg">
+    <div className="fixed font-inter bottom-0 left-0 w-full bg-gray-800 text-white flex justify-around items-center py-2 z-50 shadow-lg">
       {/* Home Tab */}
       <div className="text-center">
         <Link 

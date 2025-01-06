@@ -224,7 +224,7 @@ const saveToFirebase = (fileData) => {
   };
 
   return (
-    <div className="flex justify-center items-center bg-white lg:bg-gradient-to-r from-blue-200 via-teal-100 to-slate-50 mb-10 pt-2 pb-4">
+    <div className="flex justify-center font-inter items-center bg-white lg:bg-gradient-to-r from-blue-200 via-teal-100 to-slate-50 mb-10 pt-2 pb-4">
 <div className="flex space-x-12 max-w-2xl ">
   <button
     className="bg-white text-blue-500 border border-blue-500 px-4 py-2 rounded w-full"

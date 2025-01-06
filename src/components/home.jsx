@@ -6,22 +6,20 @@ const Home = () => {
     <div className="bg-[#ffffff]  relative font-inter">
       {/* Blue Container for Top 40% */}
       <div className="bg-gradient-to-b from-[#f9fcf7] to-[#e9f9fb] h-auto flex flex-col items-center justify-center mb-4 rounded-br-3xl rounded-bl-3xl ">
-  {/* Company Logo positioned in the top-left corner */}
-  <div className="absolute top-4 left-4">
-    <img
-      src="./blacklogo.png"
-      alt="Company Logo"
-      className="w-36 h-auto" // Set width to 9rem (w-36) and height auto
-    />
-  </div>
+        {/* Company Logo positioned in the top-left corner */}
+        <div className="absolute top-4 left-4">
+          <img
+            src="./blacklogo.png"
+            alt="Company Logo"
+            className="w-36 h-auto" // Set width to 9rem (w-36) and height auto
+          />
+        </div>
 
-  {/* Heading Text */}
-  <div className="text-3xl md:text-4xl font-bold text-center text-[#316bff] mt-24 sm:mt-20 mb-8 leading-tight">
-    Streamline Your Sales and Placement with One Tap
-  </div>
-</div>
-
-
+        {/* Heading Text */}
+        <div className="text-3xl md:text-4xl font-bold text-center text-[#316bff] mt-24 sm:mt-20 mb-8 leading-tight">
+          Streamline Your Sales and Placement with One Tap
+        </div>
+      </div>
 
       {/* Main Content Section (Remaining 60% for Sales and Placement) */}
       <div className="flex flex-col items-center justify-center w-full bg-[#ffffff]  space-y-8 px-4">
@@ -35,7 +33,9 @@ const Home = () => {
             <div className="flex flex-col items-start w-full">
               {/* Admin Title above Sales (aligned left) */}
               <div className="text-sm text-white font-extralight">Admin</div>
-              <div className="text-lg md:text-4xl text-white font-bold">Sales</div>
+              <div className="text-lg md:text-4xl text-white font-bold">
+                Sales
+              </div>
             </div>
             <img
               src="./sale.webp"
@@ -52,7 +52,9 @@ const Home = () => {
             <div className="flex flex-col items-start w-full">
               {/* Admin Title above Placement (aligned left) */}
               <div className="text-sm text-white font-extralight">Admin</div>
-              <div className="text-lg md:text-4xl text-white font-bold">Placement</div>
+              <div className="text-lg md:text-4xl text-white font-bold">
+                Placement
+              </div>
             </div>
             <img
               src="./placement.webp"

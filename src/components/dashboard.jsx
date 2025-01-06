@@ -29,10 +29,15 @@ function Dashboard() {
       }
     } catch (err) {
       console.error("Error fetching files:", err);
-      setError("Failed to load files.");
+      if (err.code === "auth/unauthorized") {
+        setError("You are not authorized to view the files.");
+      } else {
+        setError("Failed to load files. Please try again later.");
+      }
     } finally {
       setIsLoading(false);
     }
+    
   };
 
   // Format the date to Month Day, Year
@@ -151,11 +156,13 @@ function Dashboard() {
                 onClick={() => handleFileClick(file)}
               >
                 <div className="relative w-full h-32 mb-2 overflow-hidden rounded-lg">
-                  <img
-                    src={file.secure_url}
-                    alt={file.original_filename}
-                    className="w-full h-full object-cover rounded-lg transition-all duration-300 ease-in-out hover:scale-105"
-                  />
+                <img
+  src={file.secure_url}
+  alt={file.original_filename}
+  className="w-full h-full object-cover rounded-lg transition-all duration-300 ease-in-out hover:scale-105"
+  loading="lazy"
+/>
+
                 </div>
                 <p className="text-base font-light text-center text-gray-700 truncate">{file.original_filename}</p>
               </div>
@@ -186,59 +193,83 @@ function Dashboard() {
         <span className="font-semibold text-xs md:text-lg">Reset Filters</span>
       </button>
 
-      {isLoading && <div className="text-center text-gray-500">Loading...</div>}
+      {isLoading && (
+  <div className="flex justify-center items-center space-x-4 p-6">
+    <div className="animate-spin border-t-4 border-blue-500 w-12 h-12 border-solid rounded-full"></div>
+    <span className="text-lg text-gray-700 font-semibold">Loading...</span>
+  </div>
+)}
+
+
       {error && <div className="text-center text-red-600">{error}</div>}
 
       {filteredFiles.length === 0 && !isLoading && !error && (
         <div className="text-center text-gray-600">No files found.</div>
       )}
 
-      {/* Table Section */}
-      <div className="transition-all duration-300 ease-in-out">
-        <div className="hidden sm:block">
-          <table className="min-w-full table-auto border-collapse border border-gray-200 rounded-lg shadow-lg">
-            <thead>
-              <tr className="bg-blue-100 text-gray-700">
-                <th className="py-3 px-4 border-b text-left">File Name</th>
-                <th className="py-3 px-4 border-b text-left">Size</th>
-                <th className="py-3 px-4 border-b text-left">Dimensions</th>
-                <th className="py-3 px-4 border-b text-left">Uploaded At</th>
-                <th className="py-3 px-4 border-b text-left">Format</th>
-                <th className="py-3 px-4 border-b text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredFiles.map((file, index) => (
-                <tr
-                  key={index}
-                  className="border-b hover:bg-gray-200 hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer"
-                  onClick={() => handleFileClick(file)}
-                >
-                  <td className="py-3 px-4 flex items-center">
-                    {getFileTypeIcon(file.format)}
-                    <span className="ml-2">{file.original_filename}</span>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600">{formatFileSize(file.size)}</td>
-                  <td className="py-3 px-4 text-gray-600">{file.width}x{file.height}</td>
-                  <td className="py-3 px-4 text-gray-600">{formatToMonthDayYear(file.created_at)}</td>
-                  <td className="py-3 px-4 text-gray-600">{file.format}</td>
-                  <td className="py-3 px-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(file.secure_url, file.original_filename);
-                      }}
-                      className="text-blue-500 hover:underline focus:outline-none"
-                    >
-                      Download
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+{/* Table Section */}
+{/* Table Section */}
+<div className="transition-all duration-300 ease-in-out">
+  <div className="hidden sm:block">
+    <table className="min-w-full table-auto border-collapse border border-gray-200 rounded-lg shadow-lg">
+      <thead>
+        <tr className="bg-blue-100 text-gray-700">
+          <th className="py-3 px-4 border-b text-left">File Name</th>
+          <th className="py-3 px-4 border-b text-left">Size</th>
+          <th className="py-3 px-4 border-b text-left">Dimensions</th>
+          <th className="py-3 px-4 border-b text-left">Uploaded At</th>
+          <th className="py-3 px-4 border-b text-left">Format</th>
+          <th className="py-3 px-4 border-b text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredFiles.map((file, index) => (
+          <tr
+            key={index}
+            className="border-b hover:bg-gray-200 hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer"
+            onClick={() => handleFileClick(file)}
+          >
+            <td className="py-3 px-4 flex items-center">
+              {/* Image preview on the left side of the icon and file name */}
+              {file.format.startsWith("image/") && (
+                <div className="w-12 h-12 mr-3 overflow-hidden rounded-lg">
+                  <img
+                    src={file.secure_url}
+                    alt={file.original_filename}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* File Type Icon */}
+              {getFileTypeIcon(file.format)}
+
+              {/* File Name */}
+              <span className="ml-2 text-gray-700">{file.original_filename}</span>
+            </td>
+            <td className="py-3 px-4 text-gray-600">{formatFileSize(file.size)}</td>
+            <td className="py-3 px-4 text-gray-600">{file.width}x{file.height}</td>
+            <td className="py-3 px-4 text-gray-600">{formatToMonthDayYear(file.created_at)}</td>
+            <td className="py-3 px-4 text-gray-600">{file.format}</td>
+            <td className="py-3 px-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownload(file.secure_url, file.original_filename);
+                }}
+                className="text-blue-500 hover:underline focus:outline-none"
+              >
+                Download
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
 
       {/* Mobile-friendly 2-Column Layout */}
       <div className="sm:hidden">

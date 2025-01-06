@@ -40,42 +40,76 @@ function SalesForm() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsModalOpen(true);
     setIsLoading(true);
   
-    console.log('Form Data Submitted:');
-    console.table(formData);
+    // Prepare the data to be sent
+    const data = {
+      collegeName: formData.collegeName,
+      city: formData.city,
+      clientName: formData.clientName,
+      clientDesignation: formData.clientDesignation,
+      clientContact: formData.clientContact,
+      salesRep: formData.salesRep,
+      visitPurpose: formData.visitPurpose,
+      courses: formData.courses,
+      visitPhase: formData.visitPhase,
+      autoDate: formData.autoDate,
+      studentCount: formData.studentCount,
+      perStudentRate: formData.perStudentRate,
+      totalContractValue: formData.totalContractValue,
+      remarks: formData.remarks,
+    };
   
-    // Simulate API call (replace this with your actual API call)
-    setTimeout(() => {
-      setIsLoading(false);
-      setSuccessMessage('Your data is saved!');
-      
-      setFormData({
-        collegeName: '',
-        city: '',
-        clientName: '',
-        clientDesignation: '',
-        clientContact: '',
-        salesRep: '',
-        visitPurpose: '',
-        courses: '',
-        visitPhase: '',
-        autoDate: '',
-        studentCount: '',
-        perStudentRate: '',
-        totalContractValue: '',
-        remarks: '',
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbzzlaqpzxnwQA-pCRhcVqjY-Xz2VjUV1ANxLhfuUV-5IVP9b4jnhzwLdmo1PMVgxZo/exec', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include', // Ensures cookies are sent if necessary (for CORS)
       });
   
-      setTimeout(() => {
-        setIsModalOpen(false);
-        setSuccessMessage('');
-      }, 2000);
-    }, 2000);
+      const result = await response.json();
+  
+      if (response.ok) {
+        setSuccessMessage(result.message || 'Your data has been saved!');
+        setFormData({
+          collegeName: '',
+          city: '',
+          clientName: '',
+          clientDesignation: '',
+          clientContact: '',
+          salesRep: '',
+          visitPurpose: '',
+          courses: '',
+          visitPhase: '',
+          autoDate: '',
+          studentCount: '',
+          perStudentRate: '',
+          totalContractValue: '',
+          remarks: '',
+        });
+  
+        // Optionally hide the modal after a short delay
+        setTimeout(() => {
+          setIsModalOpen(false);
+        }, 2000);
+      } else {
+        throw new Error(result.message || 'Failed to submit data');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      setSuccessMessage(`Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
+  
+  
   
   const handleBack = () => {
     navigate('/');
@@ -173,8 +207,8 @@ function SalesForm() {
               className={inputClass}
             >
               <option value="">Select Sales Rep</option>
-              <option value="Dheeraj">Dheeraj Sir</option>
-              <option value="Nishad">Nishad Sir</option>
+              <option value="Dheeraj">Dheeraj Jalali</option>
+              <option value="Nishad">Nishad Kulkarni</option>
             </select>
           </div>
 

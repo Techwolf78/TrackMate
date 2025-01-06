@@ -5,7 +5,7 @@ const Home = () => {
   return (
     <div className="bg-[#ffffff]  relative font-inter">
       {/* Blue Container for Top 40% */}
-      <div className="bg-gradient-to-b from-[#f9fcf7] to-[#e9f9fb] h-auto flex flex-col items-center justify-center mb-4 rounded-br-3xl rounded-bl-3xl ">
+      <div className="bg-gradient-to-b from-[#f9fcf7] to-[#e9f9fb] h-auto flex flex-col items-center justify-center mb-4 rounded-br-3xl rounded-bl-3xl shadow-xl">
         {/* Company Logo positioned in the top-left corner */}
         <div className="absolute top-4 left-4">
           <img

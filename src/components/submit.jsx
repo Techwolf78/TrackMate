@@ -48,27 +48,27 @@ function Submit() {
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const validTypes = [
-      "image/png",
-      "image/jpeg",
-      "image/jpg"
-    ]; // Only allow image files
+    const validTypes = ["image/png", "image/jpeg", "image/jpg"]; // Only allow image files
     const maxFileSize = 10 * 1024 * 1024; // 10MB
-  
+
     const newFiles = selectedFiles.filter((file) => {
       if (validTypes.includes(file.type)) {
         if (file.size <= maxFileSize) {
           return true;
         } else {
-          alert(`${file.name} is too large! Please upload a file smaller than 10MB.`);
+          alert(
+            `${file.name} is too large! Please upload a file smaller than 10MB.`
+          );
           return false;
         }
       } else {
-        alert("Invalid file type. Only image files (JPG, PNG, JPEG) are allowed.");
+        alert(
+          "Invalid file type. Only image files (JPG, PNG, JPEG) are allowed."
+        );
         return false;
       }
     });
-  
+
     if (newFiles.length > 0) {
       setFiles([...files, ...newFiles]);
       setUploadProgress([...uploadProgress, ...newFiles.map(() => 0)]);
@@ -86,11 +86,14 @@ function Submit() {
   };
 
   const handleUploadClick = () => {
-    if (files.length === 0 || files.some(file => file.size > 10 * 1024 * 1024)) {
+    if (
+      files.length === 0 ||
+      files.some((file) => file.size > 10 * 1024 * 1024)
+    ) {
       alert("Please select an image file less than 10MB.");
       return;
     }
-  
+
     setIsUploading(true);
     setUploadStatus("Uploading");
     setCurrentFileIndex(0);
@@ -102,10 +105,14 @@ function Submit() {
     formData.append("file", file);
     formData.append("upload_preset", UPLOAD_PRESET);
     formData.append("cloud_name", CLOUD_NAME);
-  
+
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, true);
-  
+    xhr.open(
+      "POST",
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      true
+    );
+
     xhr.upload.onprogress = function (e) {
       if (e.lengthComputable) {
         const progress = Math.round((e.loaded / e.total) * 100);
@@ -114,14 +121,14 @@ function Submit() {
         );
       }
     };
-  
+
     xhr.onload = function () {
       const response = JSON.parse(xhr.responseText);
       if (xhr.status === 200) {
         console.log("File uploaded successfully:", response);
         const fileUrl = response.secure_url;
         const formattedDate = formatDate(response.created_at); // Format the created_at timestamp
-  
+
         // Capture the format field from Cloudinary metadata
         const fileData = {
           secure_url: fileUrl,
@@ -133,10 +140,10 @@ function Submit() {
           format: response.format, // Add format field here
           created_at: formattedDate, // Save the formatted date here
         };
-  
+
         // Save the file metadata to Firebase
         saveToFirebase(fileData);
-  
+
         if (index < files.length - 1) {
           setCurrentFileIndex(index + 1);
           uploadFile(files[index + 1], index + 1);
@@ -144,7 +151,7 @@ function Submit() {
           setIsUploading(false);
           setShowSuccessToast(true);
           setIsBillModalOpen(false);
-  
+
           setTimeout(() => {
             setShowSuccessToast(false);
             setFiles([]);
@@ -160,14 +167,14 @@ function Submit() {
         setTimeout(() => setShowErrorToast(false), 3000);
       }
     };
-  
+
     xhr.onerror = function () {
       console.error("Upload failed");
       setIsUploading(false);
       setShowErrorToast(true);
       setTimeout(() => setShowErrorToast(false), 3000);
     };
-  
+
     try {
       xhr.send(formData);
     } catch (error) {
@@ -177,23 +184,19 @@ function Submit() {
       setTimeout(() => setShowErrorToast(false), 3000);
     }
   };
-  
-  
-
 
   // Save data to Firebase Realtime Database
-// Save data to Firebase Realtime Database
-const saveToFirebase = (fileData) => {
-  const dataRef = ref(db, "uploaded_files/" + Date.now()); // Using timestamp as the key
-  set(dataRef, fileData)
-    .then(() => {
-      console.log("File metadata saved to Firebase");
-    })
-    .catch((error) => {
-      console.error("Error saving data to Firebase:", error);
-    });
-};
-
+  // Save data to Firebase Realtime Database
+  const saveToFirebase = (fileData) => {
+    const dataRef = ref(db, "uploaded_files/" + Date.now()); // Using timestamp as the key
+    set(dataRef, fileData)
+      .then(() => {
+        console.log("File metadata saved to Firebase");
+      })
+      .catch((error) => {
+        console.error("Error saving data to Firebase:", error);
+      });
+  };
 
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return `${bytes} bytes`;
@@ -225,192 +228,196 @@ const saveToFirebase = (fileData) => {
 
   return (
     <div className="flex justify-center font-inter items-center bg-white lg:bg-gradient-to-r from-blue-200 via-teal-100 to-slate-50 mb-10 pt-2 pb-4">
-<div className="flex space-x-12 max-w-2xl ">
-  <button
-    className="bg-white text-blue-500 border border-blue-500 px-4 py-2 rounded w-full"
-    onClick={handleOpenModal}
-  >
-    Spent
-  </button>
-  <button
-    className="bg-white text-blue-500 border border-blue-500 px-4 py-2 rounded w-full"
-    onClick={handleOpenBillModal}
-  >
-    Bills
-  </button>
-</div>
-
-
-
-    {/* Spent Modal */}
-    {isModalOpen && (
-      <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-2">
-        <div className="bg-white p-4 rounded-lg  max-w-lg w-full relative">
-          <div
-            onClick={handleCloseModal}
-            className="absolute top-2 right-2 w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center cursor-pointer"
-          >
-            <span className="font-bold text-xl">×</span>
-          </div>
-          <h3 className="text-xl text-gray-700 font-semibold">Spent</h3>
-
-          <div className="mt-4">
-            <label className="text-gray-700 font-medium">
-              Enter Spent Amount:
-            </label>
-            <input
-              type="number"
-              value={spentAmount}
-              onChange={(e) => setSpentAmount(e.target.value)}
-              className="border border-gray-300 rounded-md w-full p-2 mt-2"
-              placeholder="Enter the amount you spent"
-            />
-          </div>
-
-          <div className="mt-4 flex justify-between">
-            <button
-              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
-              onClick={handleCloseModal}
-            >
-              Cancel
-            </button>
-            <button
-              className="bg-blue-500 text-white px-4 py-2 rounded-md"
-              onClick={handleSave}
-            >
-              Save
-            </button>
-          </div>
-        </div>
+      <div className="flex space-x-12 max-w-2xl ">
+        <button
+          className="bg-white text-blue-500 border border-blue-500 px-4 py-2 rounded w-full"
+          onClick={handleOpenModal}
+        >
+          Spent
+        </button>
+        <button
+          className="bg-white text-blue-500 border border-blue-500 px-4 py-2 rounded w-full"
+          onClick={handleOpenBillModal}
+        >
+          Bills
+        </button>
       </div>
-    )}
 
-    {/* Bills Modal */}
-    {isBillModalOpen && (
-      <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-2">
-        <div className="bg-white p-4 rounded-lg shadow-lg max-w-lg w-full relative">
-          <div
-            onClick={handleCloseBillModal}
-            className="absolute top-2 right-2 w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center cursor-pointer"
-          >
-            <span className="font-bold text-xl">×</span>
-          </div>
-          <div className="flex items-center mb-6">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-white border border-gray-400 text-white flex items-center justify-center rounded-full mr-4">
-              <img src="./upload.png" alt="Upload Icon" className="w-6 h-6" />
+      {/* Spent Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-2">
+          <div className="bg-white p-4 rounded-lg  max-w-lg w-full relative">
+            <div
+              onClick={handleCloseModal}
+              className="absolute top-2 right-2 w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center cursor-pointer"
+            >
+              <span className="font-bold text-xl">×</span>
             </div>
-            <h3 className="text-xl text-gray-700 font-semibold">
-              Upload Your Bills
-            </h3>
-          </div>
+            <h3 className="text-xl text-gray-700 font-semibold">Spent</h3>
 
-          {/* Drag and Drop Area */}
-          <div className="text-center">
-            <p className="text-base font-medium text-gray-700">
-              Drag & Drop your file here
-            </p>
-            <div className="border-dashed border-2 p-8 rounded-xl border-gray-400 mt-4 relative">
+            <div className="mt-4">
+              <label className="text-gray-700 font-medium">
+                Enter Spent Amount:
+              </label>
               <input
-                type="file"
-                accept=".png,.jpg,.jpeg"
-                multiple
-                onChange={handleFileChange}
-                className="absolute inset-0 opacity-0 cursor-pointer"
+                type="number"
+                value={spentAmount}
+                onChange={(e) => setSpentAmount(e.target.value)}
+                className="border border-gray-300 rounded-md w-full p-2 mt-2"
+                placeholder="Enter the amount you spent"
               />
-              <div className="text-center text-gray-500">
-                <p>OR</p>
-                <p className="mt-2 text-sm text-gray-600">
-                  Click to select files
-                </p>
-              </div>
+            </div>
+
+            <div className="mt-4 flex justify-between">
               <button
-                className="mt-2 bg-white border-4 border-gray-200 text-gray-700 text-xs px-1 py-1 rounded-full"
-                onClick={() =>
-                  document.querySelector('input[type="file"]').click()
-                }
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+                onClick={handleCloseModal}
               >
-                Browse Files
+                Cancel
+              </button>
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                onClick={handleSave}
+              >
+                Save
               </button>
             </div>
-            <p className="text-sm text-gray-500 mt-2">
-              Supported formats: JPG, PNG (up to 10MB)
-            </p>
           </div>
+        </div>
+      )}
 
-          {/* Scrollable File List */}
-          {files.length > 0 && (
-            <div className="mt-4 max-h-60 overflow-y-auto">
-              <div className="space-y-2">
-                {files.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-100 rounded-lg shadow-md"
-                  >
-                    <span className="text-sm text-gray-600">
-                      {file.name} ({formatFileSize(file.size)})
-                    </span>
-                    <button
-                      onClick={() => handleRemoveFile(index)}
-                      className="text-red-500 font-bold text-xl"
+      {/* Bills Modal */}
+      {isBillModalOpen && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-2">
+          <div className="bg-white p-4 rounded-lg shadow-lg max-w-lg w-full relative">
+            <div
+              onClick={handleCloseBillModal}
+              className="absolute top-2 right-2 w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center cursor-pointer"
+            >
+              <span className="font-bold text-xl">×</span>
+            </div>
+            <div className="flex items-center mb-6">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-white border border-gray-400 text-white flex items-center justify-center rounded-full mr-4">
+                <img src="./upload.png" alt="Upload Icon" className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl text-gray-700 font-semibold">
+                Upload Your Bills
+              </h3>
+            </div>
+
+            {/* Drag and Drop Area */}
+            <div className="text-center">
+              <p className="text-base font-medium text-gray-700">
+                Drag & Drop your file here
+              </p>
+              <div className="border-dashed border-2 p-8 rounded-xl border-gray-400 mt-4 relative">
+                <input
+                  type="file"
+                  accept=".png,.jpg,.jpeg"
+                  multiple
+                  onChange={handleFileChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+                <div className="text-center text-gray-500">
+                  <p>OR</p>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Click to select files
+                  </p>
+                </div>
+                <button
+                  className="mt-2 bg-white border-4 border-gray-200 text-gray-700 text-xs px-1 py-1 rounded-full"
+                  onClick={() =>
+                    document.querySelector('input[type="file"]').click()
+                  }
+                >
+                  Browse Files
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                Supported formats: JPG, PNG (up to 10MB)
+              </p>
+            </div>
+
+            {/* Scrollable File List */}
+            {files.length > 0 && (
+              <div className="mt-4 max-h-60 overflow-y-auto">
+                <div className="space-y-2">
+                  {files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-gray-100 rounded-lg shadow-md"
                     >
-                      ×
-                    </button>
+                      <span className="text-sm text-gray-600">
+                        {file.name} ({formatFileSize(file.size)})
+                      </span>
+                      <button
+                        onClick={() => handleRemoveFile(index)}
+                        className="text-red-500 font-bold text-xl"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Progress message */}
+            {isUploading && files.length > 0 && (
+              <div className="mt-6">
+                {files.map((file, index) => (
+                  <div key={index} className="mt-4">
+                    <div className="text-sm text-gray-600">
+                      Uploading {file.name}...
+                    </div>
+                    <div className="mt-2 w-full bg-gray-200 rounded h-2">
+                      <div
+                        className="bg-blue-500 h-2 rounded"
+                        style={{ width: `${uploadProgress[index]}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      {uploadProgress[index]}%
+                    </p>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Progress message */}
-          {isUploading && files.length > 0 && (
-            <div className="mt-6">
-              {files.map((file, index) => (
-                <div key={index} className="mt-4">
-                  <div className="text-sm text-gray-600">
-                    Uploading {file.name}...
-                  </div>
-                  <div className="mt-2 w-full bg-gray-200 rounded h-2">
-                    <div
-                      className="bg-blue-500 h-2 rounded"
-                      style={{ width: `${uploadProgress[index]}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {uploadProgress[index]}%
-                  </p>
-                </div>
-              ))}
+            {/* Upload Button */}
+            <div className="flex justify-center mt-6">
+              <button
+                className="bg-blue-500 text-white px-6 py-2 rounded-lg"
+                onClick={handleUploadClick}
+                disabled={
+                  files.length === 0 ||
+                  files.some((file) => file.size > 10 * 1024 * 1024)
+                }
+              >
+                Upload
+              </button>
             </div>
-          )}
-
-          {/* Upload Button */}
-          <div className="flex justify-center mt-6">
-            <button
-              className="bg-blue-500 text-white px-6 py-2 rounded-lg"
-              onClick={handleUploadClick}
-              disabled={files.length === 0 || files.some(file => file.size > 10 * 1024 * 1024)}
-            >
-              Upload
-            </button>
           </div>
         </div>
-      </div>
-    )}
+      )}
 
-    {/* Success Toast */}
-    {showSuccessToast && (
-      <div className="fixed top-2 left-2 right-2 bg-green-500 text-white text-center py-3 z-50">
-        <p>Your bill has been uploaded successfully!</p>
-      </div>
-    )}
+      {/* Success Toast */}
+      {showSuccessToast && (
+        <div className="fixed top-2 left-2 right-2 bg-green-500 text-white text-center py-3 z-50">
+          <p>Your bill has been uploaded successfully!</p>
+        </div>
+      )}
 
-    {/* Error Toast */}
-    {showErrorToast && (
-      <div className="fixed top-2 left-2 right-2 bg-red-500 text-white text-center py-3 z-50">
-        <p>Your file is either too large or not an image. Only images under 10MB are allowed.</p>
-      </div>
-    )}
-  </div>
+      {/* Error Toast */}
+      {showErrorToast && (
+        <div className="fixed top-2 left-2 right-2 bg-red-500 text-white text-center py-3 z-50">
+          <p>
+            Your file is either too large or not an image. Only images under
+            10MB are allowed.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 

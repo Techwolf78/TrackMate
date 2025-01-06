@@ -1,28 +1,28 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function SalesForm() {
   const [formData, setFormData] = useState({
-    collegeName: '',
-    city: '',
-    clientName: '',
-    clientDesignation: '',
-    clientContact: '',
-    salesRep: '',
-    visitPurpose: '',
-    courses: '',
-    visitPhase: '',
-    autoDate: '',
-    studentCount: '',
-    perStudentRate: '',
-    totalContractValue: '',
-    remarks: '',
+    collegeName: "",
+    city: "",
+    clientName: "",
+    clientDesignation: "",
+    clientContact: "",
+    salesRep: "",
+    visitPurpose: "",
+    courses: "",
+    visitPhase: "",
+    autoDate: "",
+    studentCount: "",
+    perStudentRate: "",
+    totalContractValue: "",
+    remarks: "",
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
   const [isLoading, setIsLoading] = useState(false); // Loading state
-  const [successMessage, setSuccessMessage] = useState('');
-  
+  const [successMessage, setSuccessMessage] = useState("");
+
   const navigate = useNavigate();
 
   // Dynamically generate Visit Code
@@ -44,7 +44,7 @@ function SalesForm() {
     e.preventDefault();
     setIsModalOpen(true);
     setIsLoading(true);
-  
+
     // Prepare the data to be sent, including the dynamically generated visitCode
     const data = {
       visitCode: visitCode, // Add the visitCode here
@@ -63,44 +63,47 @@ function SalesForm() {
       totalContractValue: formData.totalContractValue,
       remarks: formData.remarks,
     };
-  
+
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwlm0MkEyIQOdIMKKW92BL19WX_XGizY0XykR9AoDIIuWoVJheb1Yxt7Z4a6IOSwr4/exec', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-        credentials: 'include', // Ensures cookies are sent if necessary (for CORS)
-      });
-  
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwlm0MkEyIQOdIMKKW92BL19WX_XGizY0XykR9AoDIIuWoVJheb1Yxt7Z4a6IOSwr4/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+          credentials: "include", // Ensures cookies are sent if necessary (for CORS)
+        }
+      );
+
       const result = await response.json();
-  
+
       if (response.ok) {
-        setSuccessMessage(result.message || 'Your data has been saved!');
+        setSuccessMessage(result.message || "Your data has been saved!");
         setFormData({
-          collegeName: '',
-          city: '',
-          clientName: '',
-          clientDesignation: '',
-          clientContact: '',
-          salesRep: '',
-          visitPurpose: '',
-          courses: '',
-          visitPhase: '',
-          autoDate: '',
-          studentCount: '',
-          perStudentRate: '',
-          totalContractValue: '',
-          remarks: '',
+          collegeName: "",
+          city: "",
+          clientName: "",
+          clientDesignation: "",
+          clientContact: "",
+          salesRep: "",
+          visitPurpose: "",
+          courses: "",
+          visitPhase: "",
+          autoDate: "",
+          studentCount: "",
+          perStudentRate: "",
+          totalContractValue: "",
+          remarks: "",
         });
-  
+
         // Optionally hide the modal after a short delay
         setTimeout(() => {
           setIsModalOpen(false);
         }, 2000);
       } else {
-        throw new Error(result.message || 'Failed to submit data');
+        throw new Error(result.message || "Failed to submit data");
       }
     } catch (error) {
       setIsLoading(false);
@@ -109,16 +112,16 @@ function SalesForm() {
       setIsLoading(false);
     }
   };
-  
-  
-  
+
   const handleBack = () => {
-    navigate('/');
+    navigate("/");
   };
 
-  const formClass = 'bg-white  p-8 max-w-3xl w-full font-inter';
-  const inputClass = 'mt-2 p-3 w-full bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500';
-  const buttonClass = 'bg-white text-teal-500 border border-teal-500 hover:bg-teal-500 hover:text-white hover:border-teal-600 transition duration-300 px-6 py-3 font-semibold rounded-lg w-full';
+  const formClass = "bg-white  p-8 max-w-3xl w-full font-inter";
+  const inputClass =
+    "mt-2 p-3 w-full bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500";
+  const buttonClass =
+    "bg-white text-teal-500 border border-teal-500 hover:bg-teal-500 hover:text-white hover:border-teal-600 transition duration-300 px-6 py-3 font-semibold rounded-lg w-full";
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-200 via-teal-100 to-slate-50">
@@ -130,8 +133,21 @@ function SalesForm() {
             onClick={handleBack}
             className="text-sm font-semibold underline flex items-center"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" className="mr-2">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 12H5m7-7l-7 7 7 7" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              className="mr-2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 12H5m7-7l-7 7 7 7"
+              />
             </svg>
             Back
           </button>
@@ -178,7 +194,9 @@ function SalesForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Client Designation</label>
+            <label className="block text-sm font-medium">
+              Client Designation
+            </label>
             <input
               type="text"
               name="clientDesignation"
@@ -269,7 +287,9 @@ function SalesForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Per Student Rate</label>
+            <label className="block text-sm font-medium">
+              Per Student Rate
+            </label>
             <input
               type="number"
               name="perStudentRate"
@@ -280,7 +300,9 @@ function SalesForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Total Contract Value</label>
+            <label className="block text-sm font-medium">
+              Total Contract Value
+            </label>
             <input
               type="number"
               name="totalContractValue"
@@ -291,7 +313,9 @@ function SalesForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Remarks for Next Visit</label>
+            <label className="block text-sm font-medium">
+              Remarks for Next Visit
+            </label>
             <textarea
               name="remarks"
               value={formData.remarks}
@@ -303,10 +327,7 @@ function SalesForm() {
 
           {/* Submit Button */}
           <div className="text-center mt-8">
-            <button
-              type="submit"
-              className={buttonClass}
-            >
+            <button type="submit" className={buttonClass}>
               Submit
             </button>
           </div>
@@ -331,7 +352,12 @@ function SalesForm() {
                 viewBox="0 0 24 24"
                 className="stroke-current"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
 
@@ -344,7 +370,9 @@ function SalesForm() {
                 </>
               ) : (
                 <>
-                  <div className="text-xl font-semibold mb-4">{successMessage}</div>
+                  <div className="text-xl font-semibold mb-4">
+                    {successMessage}
+                  </div>
                 </>
               )}
             </div>

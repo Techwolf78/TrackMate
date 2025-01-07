@@ -130,7 +130,7 @@ function SalesForm() {
   };
 
   const handleBack = () => {
-    navigate("/");
+    navigate("/home");
   };
 
 

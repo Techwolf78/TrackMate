@@ -127,7 +127,7 @@ function PlacementForm() {
   };
 
   const handleBack = () => {
-    navigate("/");
+    navigate("/home");
   };
 
   const formClass = "bg-white  p-8 max-w-3xl w-full font-inter";

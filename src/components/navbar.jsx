@@ -9,7 +9,7 @@ const Navbar = () => {
   const isSalesOrPlacement = location.pathname === '/sales' || location.pathname === '/placement';
   const isReportActive = isSalesOrPlacement;  // Report is active only if on sales or placement
   const isNotificationActive = location.pathname === '/dashboard';
-  const isProfileActive = location.pathname === '/profile';
+  const isProfileActive = location.pathname === '/spent';
 
   return (
     <div className="fixed font-inter bottom-0 left-0 w-full bg-gray-800 text-white flex justify-around items-center py-2 z-50 shadow-lg">

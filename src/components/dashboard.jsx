@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
-import { getDatabase, ref, get } from "firebase/database";
+import { getDatabase, ref, get, remove } from "firebase/database";
 import db from "../firebaseConfig";
 import { FaFileImage, FaTimes, FaSyncAlt } from "react-icons/fa";
 import { FaCloud, FaEllipsisV, FaSignOutAlt } from "react-icons/fa";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 function Dashboard() {
   const [files, setFiles] = useState([]);
@@ -11,9 +14,11 @@ function Dashboard() {
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null); // Create a ref for the dropdown menu
+  const dropdownRef = useRef(null); 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+const [fileToDelete, setFileToDelete] = useState(null);
+
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
@@ -24,10 +29,8 @@ function Dashboard() {
         setIsDropdownOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
 
-    // Cleanup the event listener on component unmount
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -40,7 +43,10 @@ function Dashboard() {
       const snapshot = await get(filesRef);
       if (snapshot.exists()) {
         const data = snapshot.val();
-        const fileArray = Object.values(data);
+        const fileArray = Object.values(data).map(file => ({
+          ...file,
+          id: file.public_id  // Use public_id as the unique reference
+        }));
         setFiles(fileArray);
         setFilteredFiles(fileArray);
       } else {
@@ -50,17 +56,13 @@ function Dashboard() {
       }
     } catch (err) {
       console.error("Error fetching files:", err);
-      if (err.code === "auth/unauthorized") {
-        setError("You are not authorized to view the files.");
-      } else {
-        setError("Failed to load files. Please try again later.");
-      }
+      setError("Failed to load files. Please try again later.");
     } finally {
       setIsLoading(false);
     }
   };
+  
 
-  // Format the date to Month Day, Year
   const formatToMonthDayYear = (date) => {
     if (!date) return "";
     const d = new Date(date);
@@ -69,17 +71,13 @@ function Dashboard() {
     return d.toLocaleDateString("en-US", options);
   };
 
-  // Filter files based on search query
   const filterFiles = () => {
     let filtered = files;
-
-    // Filter by search query (case insensitive)
     if (searchQuery) {
       filtered = filtered.filter((file) =>
         file.original_filename.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
     setFilteredFiles(filtered);
   };
 
@@ -94,18 +92,15 @@ function Dashboard() {
       if (!response.ok) {
         throw new Error("Failed to fetch the file");
       }
-
       const blob = await response.blob();
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
       link.href = url;
       link.download = fileName;
       link.style.display = "none";
-
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading the file:", error);
@@ -113,8 +108,15 @@ function Dashboard() {
   };
 
   const handleFileClick = (file) => {
+    console.log("File clicked:", file); // Log the file to check if it's correct
     setSelectedFile(file);
   };
+
+  useEffect(() => {
+    console.log('selectedFile updated:', selectedFile); // Log to track selectedFile state
+  }, [selectedFile]);
+  
+  
 
   const handleCloseSidebar = () => {
     setSelectedFile(null);
@@ -128,30 +130,72 @@ function Dashboard() {
     return `${mb.toFixed(2)} MB`;
   };
 
-  // Icon handling for image files
   const getFileTypeIcon = (fileFormat) => {
     let icon = <FaFileImage />;
-    let bgColor = "bg-cyan-400"; // Cyan for images
-
+    let bgColor = "bg-cyan-400"; 
     return (
       <div className={`p-2 rounded-full ${bgColor} inline-block`}>{icon}</div>
     );
   };
 
-  // Sort files by date (latest first) for the Recents section
   const sortedFiles = [...files].sort(
     (a, b) => new Date(b.created_at) - new Date(a.created_at)
   );
 
-  // Reset all filters
   const handleResetFilters = () => {
     setSearchQuery("");
-    setFilteredFiles(files); // Reset to show all files
+    setFilteredFiles(files);
   };
 
   useEffect(() => {
     fetchFiles();
   }, []);
+
+  const handleDelete = async (publicId) => {
+    try {
+      const fileRef = ref(db, `uploaded_files/${publicId}`);  // Use public_id
+      await remove(fileRef);
+      // Remove file from the state as well
+      setFiles(files.filter((file) => file.public_id !== publicId));  // Filter using public_id
+      setFilteredFiles(filteredFiles.filter((file) => file.public_id !== publicId));
+  
+      // Show success toast
+      toast.success("File deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting the file:", error);
+      // Show error toast
+      toast.error("Error deleting the file. Please try again later.");
+    }
+  };
+  
+  
+
+  const handleDeleteClick = (file) => {
+    setFileToDelete(file);
+    setIsDeleteModalOpen(true); // Show the confirmation modal
+  };
+  
+
+  const handleConfirmDelete = async () => {
+    if (!fileToDelete) return;
+  
+    try {
+      // Use public_id for deletion
+      await handleDelete(fileToDelete.public_id); // Pass public_id
+      setIsDeleteModalOpen(false);
+      setFileToDelete(null);
+    } catch (error) {
+      console.error("Error deleting the file:", error);
+      alert("Error deleting the file. Please try again later.");
+    }
+  };
+  
+  
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setFileToDelete(null);
+  };
+  
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen mb-10 relative font-inter">
@@ -286,74 +330,66 @@ function Dashboard() {
       )}
 
       {/* Table Section */}
-      {/* Table Section */}
-      <div className="transition-all duration-300 ease-in-out">
-        <div className="hidden sm:block">
-          <table className="min-w-full table-auto border-collapse border border-gray-200 rounded-lg shadow-lg">
-            <thead>
-              <tr className="bg-blue-100 text-gray-700">
-                <th className="py-3 px-4 border-b text-left">File Name</th>
-                <th className="py-3 px-4 border-b text-left">Size</th>
-                <th className="py-3 px-4 border-b text-left">Dimensions</th>
-                <th className="py-3 px-4 border-b text-left">Uploaded At</th>
-                <th className="py-3 px-4 border-b text-left">Format</th>
-                <th className="py-3 px-4 border-b text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredFiles.map((file, index) => (
-                <tr
-                  key={index}
-                  className="border-b hover:bg-gray-200 hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer"
-                  onClick={() => handleFileClick(file)}
-                >
-                  <td className="py-3 px-4 flex items-center">
-                    {/* Image preview on the left side of the icon and file name */}
-                    {file.format.startsWith("image/") && (
-                      <div className="w-12 h-12 mr-3 overflow-hidden rounded-lg">
-                        <img
-                          src={file.secure_url}
-                          alt={file.original_filename}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-
-                    {/* File Type Icon */}
-                    {getFileTypeIcon(file.format)}
-
-                    {/* File Name */}
-                    <span className="ml-2 text-gray-700">
-                      {file.original_filename}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600">
-                    {formatFileSize(file.size)}
-                  </td>
-                  <td className="py-3 px-4 text-gray-600">
-                    {file.width}x{file.height}
-                  </td>
-                  <td className="py-3 px-4 text-gray-600">
-                    {formatToMonthDayYear(file.created_at)}
-                  </td>
-                  <td className="py-3 px-4 text-gray-600">{file.format}</td>
-                  <td className="py-3 px-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(file.secure_url, file.original_filename);
-                      }}
-                      className="text-blue-500 hover:underline focus:outline-none"
-                    >
-                      Download
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+{/* Table Section */}
+<div className="transition-all duration-300 ease-in-out">
+  <div className="hidden sm:block">
+    <table className="min-w-full table-auto border-collapse border border-gray-200 rounded-lg shadow-lg">
+      <thead>
+        <tr className="bg-blue-100 text-gray-700">
+          <th className="py-3 px-4 border-b text-left">File Name</th>
+          <th className="py-3 px-4 border-b text-left">Size</th>
+          <th className="py-3 px-4 border-b text-left">Dimensions</th>
+          <th className="py-3 px-4 border-b text-left">Uploaded At</th>
+          <th className="py-3 px-4 border-b text-left">Format</th>
+          <th className="py-3 px-4 border-b text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredFiles.map((file, index) => (
+          <tr 
+            key={index} 
+            className="border-b hover:bg-gray-200 hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer"
+            onClick={() => handleFileClick(file)} // <-- Add this line to open sidebar when clicking a table row
+          >
+            <td className="py-3 px-4 flex items-center">
+              {file.format.startsWith("image/") && (
+                <div className="w-12 h-12 mr-3 overflow-hidden rounded-lg">
+                  <img src={file.secure_url} alt={file.original_filename} className="w-full h-full object-cover" />
+                </div>
+              )}
+              {getFileTypeIcon(file.format)}
+              <span className="ml-2 text-gray-700">{file.original_filename}</span>
+            </td>
+            <td className="py-3 px-4 text-gray-600">{formatFileSize(file.size)}</td>
+            <td className="py-3 px-4 text-gray-600">{file.width}x{file.height}</td>
+            <td className="py-3 px-4 text-gray-600">{formatToMonthDayYear(file.created_at)}</td>
+            <td className="py-3 px-4 text-gray-600">{file.format}</td>
+            <td className="py-3 px-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownload(file.secure_url, file.original_filename);
+                }}
+                className="text-blue-500 hover:underline focus:outline-none"
+              >
+                Download
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteClick(file); // Open delete confirmation modal
+                }}
+                className="text-red-500 hover:underline focus:outline-none ml-4"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
 
       {/* Mobile-friendly 2-Column Layout */}
       <div className="sm:hidden">
@@ -403,7 +439,29 @@ function Dashboard() {
         </div>
       </div>
 
-      {selectedFile && (
+      {isDeleteModalOpen && (
+  <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+      <h3 className="text-xl font-semibold text-gray-700 mb-4">Are you sure you want to delete this file?</h3>
+      <div className="flex justify-between">
+        <button
+          onClick={handleConfirmDelete}
+          className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-all duration-200"
+        >
+          Delete
+        </button>
+        <button
+          onClick={handleCancelDelete}
+          className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-all duration-200"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{selectedFile && (
   <div className="fixed top-0 right-0 w-full sm:w-[400px] h-full bg-white shadow-lg z-50 p-6 transform transition-all duration-300 ease-in-out rounded-lg overflow-hidden">
     <button
       onClick={handleCloseSidebar}
@@ -445,7 +503,7 @@ function Dashboard() {
     </button>
   </div>
 )}
-
+  <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 }

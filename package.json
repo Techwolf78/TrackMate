@@ -23,6 +23,7 @@
     "react-input-mask": "^2.0.4",
     "react-router-dom": "^7.1.1",
     "react-table": "^7.8.0",
+    "react-toastify": "^11.0.2",
     "uuid": "^11.0.3"
   },
   "devDependencies": {

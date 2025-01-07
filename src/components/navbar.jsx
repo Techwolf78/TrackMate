@@ -39,7 +39,7 @@ const Navbar = () => {
           to="/dashboard" 
           className={`text-sm hover:text-green-400 ${isNotificationActive ? 'text-green-400' : ''}`}
         >
-          Dashboard
+          Media
         </Link>
       </div>
 
@@ -49,7 +49,7 @@ const Navbar = () => {
           to="/spent" 
           className={`text-sm hover:text-green-400 ${isProfileActive ? 'text-green-400' : ''}`}
         >
-          Spent
+          Dashboard
         </Link>
       </div>
     </div>

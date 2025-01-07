@@ -1,42 +1,43 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-function SalesForm() {
+function PlacementForm() {
   const [formData, setFormData] = useState({
-    collegeName: "",
+    companyName: "",
     city: "",
     clientName: "",
     clientDesignation: "",
+    clientEmail: "",
     clientContact: "",
-    salesRep: "",
+    crRep: "",
     visitPurpose: "",
-    courses: "",
-    visitPhase: "",
-    autoDate: "",
-    studentCount: "",
-    perStudentRate: "",
-    totalContractValue: "",
-    remarks: "",
+    industry: "",
+    domain: "",
+    hiringPeriod: "",
+    numbersForHiring: "",
+    pitched: "",
+    jdReceived: "",
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [successMessage, setSuccessMessage] = useState("");
+
   const navigate = useNavigate();
 
-  // Dynamically generate Visit Code for Sales
+  // Dynamically generate Visit Code for Placement
   const generateVisitCode = () => {
-    return `SALES-VIST-${Math.floor(Math.random() * 10000)}`; // Unique visit code for Sales
+    return `PLACEMENT-VIST-${Math.floor(Math.random() * 10000)}`; // Unique visit code for Placement
   };
 
-  // Use sessionStorage to persist visitCode for Sales
+  // Use sessionStorage to persist visitCode for Placement
   const visitCode =
-    sessionStorage.getItem("salesVisitCode") || generateVisitCode();
+    sessionStorage.getItem("placementVisitCode") || generateVisitCode();
 
-  // Store the generated visitCode in sessionStorage for Sales if it wasn't already set
+  // Store the generated visitCode in sessionStorage for Placement if not already set
   useEffect(() => {
-    if (!sessionStorage.getItem("salesVisitCode")) {
-      sessionStorage.setItem("salesVisitCode", visitCode);
+    if (!sessionStorage.getItem("placementVisitCode")) {
+      sessionStorage.setItem("placementVisitCode", visitCode);
     }
   }, [visitCode]);
 
@@ -50,33 +51,32 @@ function SalesForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setIsModalOpen(true);
     setIsLoading(true);
 
     // Prepare the data to be sent, including the dynamically generated visitCode
     const data = {
-      visitCode: visitCode, // Use the sales-specific visitCode here
-      collegeName: formData.collegeName,
+      visitCode: visitCode, // Use the placement-specific visitCode here
+      companyName: formData.companyName,
       city: formData.city,
       clientName: formData.clientName,
       clientDesignation: formData.clientDesignation,
+      clientEmail: formData.clientEmail,
       clientContact: formData.clientContact,
-      salesRep: formData.salesRep,
+      crRep: formData.crRep,
       visitPurpose: formData.visitPurpose,
-      courses: formData.courses,
-      visitPhase: formData.visitPhase,
-      autoDate: formData.autoDate,
-      studentCount: formData.studentCount,
-      perStudentRate: formData.perStudentRate,
-      totalContractValue: formData.totalContractValue,
-      remarks: formData.remarks,
+      industry: formData.industry,
+      domain: formData.domain,
+      hiringPeriod: formData.hiringPeriod,
+      numbersForHiring: formData.numbersForHiring,
+      pitched: formData.pitched,
+      jdReceived: formData.jdReceived,
     };
-
-    console.log("Data to be sent:", data); // Log the data being sent to the API
 
     try {
       const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbx2RdYN_Q2sXBfLH7hcDvTLgsKZyOZEjI3sWvCOC2y5Aqry-yhzoZgA3ynTvguy0Xs/exec",
+        "https://script.google.com/macros/s/AKfycbx1fIVOvkqsUB6KxxbyiK1JtxfyR4v5DfIQb-3fSoSK0-dd2EVXhUd79ZyvGAvZxEg/exec",
         {
           method: "POST",
           headers: {
@@ -87,31 +87,29 @@ function SalesForm() {
         }
       );
 
-      console.log("Response Status:", response.status); // Log the status of the response
       const result = await response.json();
-      console.log("API Response:", result); // Log the result from the API
 
       if (response.ok) {
         setSuccessMessage(result.message || "Your data has been saved!");
         setFormData({
-          collegeName: "",
+          companyName: "",
           city: "",
           clientName: "",
           clientDesignation: "",
+          clientEmail: "",
           clientContact: "",
-          salesRep: "",
+          crRep: "",
           visitPurpose: "",
-          courses: "",
-          visitPhase: "",
-          autoDate: "",
-          studentCount: "",
-          perStudentRate: "",
-          totalContractValue: "",
-          remarks: "",
+          industry: "",
+          domain: "",
+          hiringPeriod: "",
+          numbersForHiring: "",
+          pitched: "",
+          jdReceived: "",
         });
 
-        // After successful submission, generate a new visitCode for next form session
-        sessionStorage.setItem("salesVisitCode", generateVisitCode()); 
+        // After successful submission, generate a new visitCode for Placement
+        sessionStorage.setItem("placementVisitCode", generateVisitCode());
 
         // Optionally hide the modal after a short delay
         setTimeout(() => {
@@ -122,7 +120,6 @@ function SalesForm() {
       }
     } catch (error) {
       setIsLoading(false);
-      console.error("Error during submission:", error); // Log the error during submission
       setSuccessMessage(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -133,8 +130,7 @@ function SalesForm() {
     navigate("/");
   };
 
-
-  const formClass = "bg-white p-8 max-w-3xl w-full font-inter";
+  const formClass = "bg-white  p-8 max-w-3xl w-full font-inter";
   const inputClass =
     "mt-2 p-3 w-full bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500";
   const buttonClass =
@@ -176,11 +172,11 @@ function SalesForm() {
         {/* Input Fields */}
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium">College Name</label>
+            <label className="block text-sm font-medium">Company Name</label>
             <input
               type="text"
-              name="collegeName"
-              value={formData.collegeName}
+              name="companyName"
+              value={formData.companyName}
               onChange={handleChange}
               className={inputClass}
               required
@@ -211,9 +207,7 @@ function SalesForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">
-              Client Designation
-            </label>
+            <label className="block text-sm font-medium">Client Designation</label>
             <input
               type="text"
               name="clientDesignation"
@@ -224,27 +218,39 @@ function SalesForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Client Contact</label>
+            <label className="block text-sm font-medium">Client Email ID</label>
             <input
-              type="text"
-              name="clientContact"
-              value={formData.clientContact}
+              type="email"
+              name="clientEmail"
+              value={formData.clientEmail}
               onChange={handleChange}
               className={inputClass}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Sales Rep</label>
+            <label className="block text-sm font-medium">Client Contact No.</label>
+            <input
+              type="text"
+              name="clientContact"
+              value={formData.clientContact}
+              onChange={handleChange}
+              className={inputClass}
+              placeholder="Enter client contact number"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">CR Rep</label>
             <select
-              name="salesRep"
-              value={formData.salesRep}
+              name="crRep"
+              value={formData.crRep}
               onChange={handleChange}
               className={inputClass}
             >
-              <option value="">Select Sales Rep</option>
-              <option value="Dheeraj">Dheeraj Jalali</option>
-              <option value="Nishad">Nishad Kulkarni</option>
+              <option value="">Select CR Rep</option>
+              <option value="Shashi Kant Sharma">Shashi Kant Sharma</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
@@ -260,85 +266,74 @@ function SalesForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Courses</label>
+            <label className="block text-sm font-medium">Industry</label>
             <input
               type="text"
-              name="courses"
-              value={formData.courses}
+              name="industry"
+              value={formData.industry}
               onChange={handleChange}
               className={inputClass}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Visit Phase</label>
+            <label className="block text-sm font-medium">Domain</label>
+            <select
+              name="domain"
+              value={formData.domain}
+              onChange={handleChange}
+              className={inputClass}
+            >
+              <option value="">Select Domain</option>
+              <option value="Engineering">Engineering</option>
+              <option value="MBA">MBA</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Hiring Period</label>
             <input
               type="text"
-              name="visitPhase"
-              value={formData.visitPhase}
+              name="hiringPeriod"
+              value={formData.hiringPeriod}
               onChange={handleChange}
               className={inputClass}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Auto Date</label>
-            <input
-              type="date"
-              name="autoDate"
-              value={formData.autoDate}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Student Count</label>
+            <label className="block text-sm font-medium">Numbers for Hiring</label>
             <input
               type="number"
-              name="studentCount"
-              value={formData.studentCount}
+              name="numbersForHiring"
+              value={formData.numbersForHiring}
               onChange={handleChange}
               className={inputClass}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">
-              Per Student Rate
-            </label>
+            <label className="block text-sm font-medium">Pitched</label>
+            <select
+              name="pitched"
+              value={formData.pitched}
+              onChange={handleChange}
+              className={inputClass}
+            >
+              <option value="">Select Pitched</option>
+              <option value="Colleges">Colleges</option>
+              <option value="Gryphon">Gryphon</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">JD Received</label>
             <input
-              type="number"
-              name="perStudentRate"
-              value={formData.perStudentRate}
+              type="text"
+              name="jdReceived"
+              value={formData.jdReceived}
               onChange={handleChange}
               className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">
-              Total Contract Value
-            </label>
-            <input
-              type="number"
-              name="totalContractValue"
-              value={formData.totalContractValue}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">
-              Remarks for Next Visit
-            </label>
-            <textarea
-              name="remarks"
-              value={formData.remarks}
-              onChange={handleChange}
-              className={`${inputClass} resize-none`}
-              rows="4"
             />
           </div>
 
@@ -400,4 +395,4 @@ function SalesForm() {
   );
 }
 
-export default SalesForm;
+export default PlacementForm;

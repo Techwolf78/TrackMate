@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { getDatabase, ref, set, get } from "firebase/database";
 import db from "../firebaseConfig"; // Import the db reference from firebaseConfig (no need to reinitialize Firebase)
 
+// No need to initialize Firebase again here
+// const app = initializeApp(firebaseConfig);
+// const db = getDatabase(app);  <-- Remove this line
+
 function Submit() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [spentAmount, setSpentAmount] = useState("");
@@ -15,12 +19,6 @@ function Submit() {
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [showErrorToast, setShowErrorToast] = useState(false);
 
-  const [allocatedAmount, setAllocatedAmount] = useState(""); // Removed the default value of 5000
-  const [food, setFood] = useState("");
-  const [fuel, setFuel] = useState("");
-  const [stay, setStay] = useState("");
-  const [toll, setToll] = useState("");
-
   const CLOUD_NAME = "dcjmaapvi";
   const UPLOAD_PRESET = "tracker";
 
@@ -28,27 +26,13 @@ function Submit() {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleSave = () => {
-    if (spentAmount && food && fuel && stay && toll && allocatedAmount) {
-      const savedData = {
-        allocatedAmount,
-        spentAmount,
-        food,
-        fuel,
-        stay,
-        toll,
-      };
-
-      setSavedData(savedData);
+    if (spentAmount) {
+      setSavedData({ allocatedAmount: 5000, spentAmount });
       setIsModalOpen(false);
       setSpentAmount("");
-      setFood("");
-      setFuel("");
-      setStay("");
-      setToll("");
-
-      console.log("Data Saved:", savedData);
+      console.log("Data Saved:", { allocatedAmount: 5000, spentAmount });
     } else {
-      alert("Please fill out all fields.");
+      alert("Please enter a spent amount");
     }
   };
 
@@ -202,6 +186,7 @@ function Submit() {
   };
 
   // Save data to Firebase Realtime Database
+  // Save data to Firebase Realtime Database
   const saveToFirebase = (fileData) => {
     const dataRef = ref(db, "uploaded_files/" + Date.now()); // Using timestamp as the key
     set(dataRef, fileData)
@@ -261,7 +246,7 @@ function Submit() {
       {/* Spent Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-2">
-          <div className="bg-white p-4 rounded-lg max-w-lg w-full relative">
+          <div className="bg-white p-4 rounded-lg  max-w-lg w-full relative">
             <div
               onClick={handleCloseModal}
               className="absolute top-2 right-2 w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center cursor-pointer"
@@ -270,97 +255,36 @@ function Submit() {
             </div>
             <h3 className="text-xl text-gray-700 font-semibold">Spent</h3>
 
-            {/* Allocated Amount */}
             <div className="mt-4">
-              <label className="text-gray-700 font-medium">Allocated Amount:</label>
+              <label className="text-gray-700 font-medium">
+                Enter Spent Amount:
+              </label>
               <input
                 type="number"
-                value={allocatedAmount}
-                onChange={(e) => setAllocatedAmount(e.target.value)}
+                value={spentAmount}
+                onChange={(e) => setSpentAmount(e.target.value)}
                 className="border border-gray-300 rounded-md w-full p-2 mt-2"
-                placeholder="Enter the allocated amount"
+                placeholder="Enter the amount you spent"
               />
             </div>
 
-      {/* Spent Amount */}
-      <div className="mt-2">
-        <label className="text-gray-700 font-medium">Spent Amount:</label>
-        <input
-          type="number"
-          value={spentAmount}
-          onChange={(e) => setSpentAmount(e.target.value)}
-          className="border border-gray-300 rounded-md w-full p-2 mt-2"
-          placeholder="Enter the amount you spent"
-        />
-      </div>
-
-      {/* Food */}
-      <div className="mt-2">
-        <label className="text-gray-700 font-medium">Food:</label>
-        <input
-          type="number"
-          value={food}
-          onChange={(e) => setFood(e.target.value)}
-          className="border border-gray-300 rounded-md w-full p-2 mt-2"
-          placeholder="Enter food expenditure"
-        />
-      </div>
-
-      {/* Fuel */}
-      <div className="mt-2">
-        <label className="text-gray-700 font-medium">Fuel:</label>
-        <input
-          type="number"
-          value={fuel}
-          onChange={(e) => setFuel(e.target.value)}
-          className="border border-gray-300 rounded-md w-full p-2 mt-2"
-          placeholder="Enter fuel expenditure"
-        />
-      </div>
-
-      {/* Stay */}
-      <div className="mt-2">
-        <label className="text-gray-700 font-medium">Stay:</label>
-        <input
-          type="number"
-          value={stay}
-          onChange={(e) => setStay(e.target.value)}
-          className="border border-gray-300 rounded-md w-full p-2 mt-2"
-          placeholder="Enter stay expenditure"
-        />
-      </div>
-
-      {/* Toll */}
-      <div className="mt-2">
-        <label className="text-gray-700 font-medium">Toll:</label>
-        <input
-          type="number"
-          value={toll}
-          onChange={(e) => setToll(e.target.value)}
-          className="border border-gray-300 rounded-md w-full p-2 mt-2"
-          placeholder="Enter toll expenditure"
-        />
-      </div>
-
-      {/* Action Buttons */}
-      <div className="mt-4 flex justify-between">
-        <button
-          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
-          onClick={handleCloseModal}
-        >
-          Cancel
-        </button>
-        <button
-          className="bg-indigo-500 text-white px-4 py-2 rounded-md"
-          onClick={handleSave}
-        >
-          Save
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+            <div className="mt-4 flex justify-between">
+              <button
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+                onClick={handleCloseModal}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-indigo-500 text-white px-4 py-2 rounded-md"
+                onClick={handleSave}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bills Modal */}
       {isBillModalOpen && (

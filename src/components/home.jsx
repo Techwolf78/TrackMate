@@ -5,7 +5,7 @@ const Home = () => {
   return (
     <div className="bg-[#ffffff]  relative font-inter">
       {/* Blue Container for Top 40% */}
-      <div className="bg-gradient-to-b from-[#ecf2ff] to-[#ecf2ff] h-auto flex flex-col items-center justify-center mb-4 ml-6 rounded-br-3xl rounded-bl-full ">
+      <div className="bg-gradient-to-b from-[#ecf2ff] to-[#ecf2ff] h-auto flex flex-col items-center justify-center mb-4 ml-4 rounded-br-3xl rounded-bl-3xl ">
         {/* Company Logo positioned in the top-left corner */}
         <div className="absolute top-4 left-4">
           <img
@@ -16,7 +16,7 @@ const Home = () => {
         </div>
 
         {/* Heading Text */}
-        <div className="text-2xl mr-24 md:text-3xl font-bold text-left text-[#316bff] mt-24 sm:mt-20 mb-8 leading-tight ">
+        <div className="text-2xl mr-16 pl-4 md:text-3xl font-bold text-left text-[#316bff] mt-24 sm:mt-20 mb-8 leading-tight ">
           Streamline Your Sales and Placement with One Tap
         </div>
       </div>

@@ -8,7 +8,7 @@ const Navbar = () => {
   const isHome = location.pathname === '/';
   const isSalesOrPlacement = location.pathname === '/sales' || location.pathname === '/placement';
   const isReportActive = isSalesOrPlacement;  // Report is active only if on sales or placement
-  const isNotificationActive = location.pathname === '/dashboard';
+  const isNotificationActive = location.pathname === '/media';
   const isProfileActive = location.pathname === '/spent';
 
   return (
@@ -36,7 +36,7 @@ const Navbar = () => {
       {/* Notification Tab */}
       <div className="text-center">
         <Link 
-          to="/dashboard" 
+          to="/media" 
           className={`text-sm hover:text-green-400 ${isNotificationActive ? 'text-green-400' : ''}`}
         >
           Media

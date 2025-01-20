@@ -76,7 +76,7 @@ function SalesForm() {
 
     try {
       const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbx2RdYN_Q2sXBfLH7hcDvTLgsKZyOZEjI3sWvCOC2y5Aqry-yhzoZgA3ynTvguy0Xs/exec",
+        "https://script.google.com/macros/s/AKfycbzvJF7-JtxgrpFa98GsIIe0CxJXjRCgiRxJJzR8ztb35tFA1cO7VoFjf5RX7FajFq0/exec",
         {
           method: "POST",
           headers: {

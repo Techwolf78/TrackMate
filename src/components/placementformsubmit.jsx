@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { getDatabase, ref, set, get } from "firebase/database";
-import db from "../firebaseConfig"; // Import the db reference from firebaseConfig (no need to reinitialize Firebase)
+import { db } from "../firebaseConfig"; // Use named import instead of default
 
 // No need to initialize Firebase again here
 // const app = initializeApp(firebaseConfig);

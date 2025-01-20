@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { getDatabase, ref, set, get } from "firebase/database";
-import db from "../firebaseConfig"; // Import the db reference from firebaseConfig (no need to reinitialize Firebase)
+import { db } from "../firebaseConfig"; // Corrected to named import
+
 
 function Submit() {
   const [isModalOpen, setIsModalOpen] = useState(false);

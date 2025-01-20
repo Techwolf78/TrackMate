@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { getDatabase, ref, get, remove } from "firebase/database";
-import db from "../firebaseConfig";
+import { db } from "../firebaseConfig"; // Use named import instead of default
+
 import { FaFileImage, FaTimes, FaSyncAlt } from "react-icons/fa";
 import { FaCloud, FaEllipsisV, FaSignOutAlt } from "react-icons/fa";
 import { toast, ToastContainer } from 'react-toastify';

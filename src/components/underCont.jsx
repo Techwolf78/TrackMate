@@ -1,27 +1,25 @@
-import React from 'react';
+import React from "react";
 
 function UnderCont() {
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="text-center max-w-lg mx-auto p-6 space-y-6">
-        {/* Header */}
-        <h1 className="text-4xl md:text-5xl font-semibold text-gray-800">
-          Under Construction
-        </h1>
-        
+    <div className="flex items-start justify-start h-screen bg-[#f5f5f5]">
+      <div className="text-center max-w-auto mx-auto ">
         {/* Image */}
         <div className="flex justify-center">
           <img
             src="under-construction.jpg"
             alt="Under Construction"
-            className="w-full h-auto max-w-lg rounded-lg shadow-lg"
+            className="w-full h-auto sm:max-w-lg md:max-w-screen-2xl "
           />
         </div>
-        
+
+        {/* Header */}
+        <h1 className="text-4xl md:text-5xl mb-3 font-semibold text-[#425b93] tracking-widest">
+          We are Under Maintaince...
+        </h1>
+
         {/* Optional additional text */}
-        <p className="text-gray-600 text-lg">
-          We're working hard to bring you the best experience. Stay tuned!
-        </p>
+        <p className="text-[#425b93] text-lg">Will be Back Soon!</p>
       </div>
     </div>
   );

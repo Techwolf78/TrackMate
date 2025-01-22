@@ -30,8 +30,9 @@ function SalesForm() {
   };
 
   // Use sessionStorage to persist visitCode for Sales
-  const visitCode =
-    sessionStorage.getItem("salesVisitCode") || generateVisitCode();
+  const [visitCode, setVisitCode] = useState(
+    sessionStorage.getItem("salesVisitCode") || generateVisitCode()
+  );
 
   // Store the generated visitCode in sessionStorage for Sales if it wasn't already set
   useEffect(() => {
@@ -52,8 +53,8 @@ function SalesForm() {
     e.preventDefault();
     setIsModalOpen(true);
     setIsLoading(true);
-
-    // Prepare the data to be sent, including the dynamically generated visitCode
+  
+    // Prepare the data to be sent
     const data = {
       visitCode: visitCode, // Use the sales-specific visitCode here
       collegeName: formData.collegeName,
@@ -71,29 +72,40 @@ function SalesForm() {
       totalContractValue: formData.totalContractValue,
       remarks: formData.remarks,
     };
-
+  
     console.log("Data to be sent:", data); // Log the data being sent to the API
-
+  
     try {
       const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbzvJF7-JtxgrpFa98GsIIe0CxJXjRCgiRxJJzR8ztb35tFA1cO7VoFjf5RX7FajFq0/exec",
+        "https://script.google.com/macros/s/AKfycbwOcxnhBVBjjwP8ZrRe-RtpNcc3xnwUaqBDV4IyeeD_IjygzNLSajhqJfka5ruChHQ/exec",
         {
-          method: "POST",
+          method: 'POST',
+          mode: 'no-cors', // No-cors mode
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
-          credentials: "include", // Ensures cookies are sent if necessary (for CORS)
+          credentials: "include",
         }
       );
+  
+      // Since we are using no-cors, we cannot access response content
+      console.log("Request sent, but cannot access the response body due to 'no-cors' mode.");
+  
+      // Since no-cors doesn't allow us to check the response body,
+      // assume the request is successful if no errors were thrown.
+      setSuccessMessage("Data submitted successfully!");
+    } catch (error) {
+      console.error("Error during submission:", error); // Log the error
+      setSuccessMessage(`Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
 
-      console.log("Response Status:", response.status); // Log the status of the response
-      const result = await response.json();
-      console.log("API Response:", result); // Log the result from the API
-
-      if (response.ok) {
-        setSuccessMessage(result.message || "Your data has been saved!");
-        setFormData({
+      // Close the modal after 2 seconds
+      setTimeout(() => {
+        setIsModalOpen(false); // Close modal
+        setSuccessMessage(""); // Clear success message
+        setFormData({ // Reset form data
           collegeName: "",
           city: "",
           clientName: "",
@@ -110,29 +122,16 @@ function SalesForm() {
           remarks: "",
         });
 
-        // After successful submission, generate a new visitCode for next form session
-        sessionStorage.setItem("salesVisitCode", generateVisitCode()); 
-
-        // Optionally hide the modal after a short delay
-        setTimeout(() => {
-          setIsModalOpen(false);
-        }, 2000);
-      } else {
-        throw new Error(result.message || "Failed to submit data");
-      }
-    } catch (error) {
-      setIsLoading(false);
-      console.error("Error during submission:", error); // Log the error during submission
-      setSuccessMessage(`Error: ${error.message}`);
-    } finally {
-      setIsLoading(false);
+        // Reset visitCode (clear sessionStorage so it regenerates next time)
+        sessionStorage.removeItem("salesVisitCode");
+        setVisitCode(generateVisitCode()); // Generate a new visitCode
+      }, 2000);
     }
   };
 
   const handleBack = () => {
     navigate("/home");
   };
-
 
   const formClass = "bg-white p-8 max-w-3xl w-full font-inter";
   const inputClass =

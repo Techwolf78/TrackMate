@@ -5,10 +5,11 @@ import Sales from "./components/sales"; // Import Sales component
 import Placement from "./components/placement"; // Import Placement component
 import Navbar from './components/navbar'; // Import Navbar component
 import Media from "./components/media";
-import Spent from './components/spent';
+// import Spent from './components/spent';
 import Landing from './components/landing'; // Import Landing component
 import Login from "./components/login";
 import Forgetpassword from "./components/forgetpassword";
+import UnderCont from "./components/underCont";
 
 const App = () => {
   return (
@@ -21,7 +22,7 @@ const App = () => {
         <Route path="/placement" element={<Placement />} /> {/* Placement page */}
         <Route path="/report" element={<div>Report Page</div>} /> {/* Report Page */}
         <Route path="/media" element={<Media />} /> {/* Notification Page */}
-        <Route path="/spent" element={<Spent />} /> {/* Profile Page */}
+        <Route path="/spent" element={<UnderCont />} /> {/* Profile Page */}
         <Route path="/login" element={<Login />} /> {/* Login Page */}
         <Route path="/forgetpassword" element={<Forgetpassword />} /> {/* Forget Password Page */}
       </Routes>

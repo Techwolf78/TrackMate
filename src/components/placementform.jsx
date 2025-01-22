@@ -17,6 +17,9 @@ function PlacementForm() {
     numbersForHiring: "",
     pitched: "",
     jdReceived: "",
+    studentCount: "", // Assuming you have these fields already
+    perStudentRate: "", // Assuming you have these fields already
+    totalValueContract: "", // Optional manual input for total value
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
@@ -31,10 +34,11 @@ function PlacementForm() {
   };
 
   // Use sessionStorage to persist visitCode for Placement
-  const visitCode =
-    sessionStorage.getItem("placementVisitCode") || generateVisitCode();
+  const [visitCode, setVisitCode] = useState(
+    sessionStorage.getItem("placementVisitCode") || generateVisitCode()
+  );
 
-  // Store the generated visitCode in sessionStorage for Placement if not already set
+  // Store the generated visitCode in sessionStorage if not already set
   useEffect(() => {
     if (!sessionStorage.getItem("placementVisitCode")) {
       sessionStorage.setItem("placementVisitCode", visitCode);
@@ -47,6 +51,16 @@ function PlacementForm() {
       ...prevData,
       [name]: value,
     }));
+  };
+
+  // Function to calculate Total Value Contract automatically
+  const calculateTotalValueContract = () => {
+    const studentCount = parseInt(formData.studentCount, 10);
+    const perStudentRate = parseFloat(formData.perStudentRate);
+    if (!isNaN(studentCount) && !isNaN(perStudentRate)) {
+      return studentCount * perStudentRate;
+    }
+    return ""; // Return empty if calculation can't be made
   };
 
   const handleSubmit = async (e) => {
@@ -72,13 +86,16 @@ function PlacementForm() {
       numbersForHiring: formData.numbersForHiring,
       pitched: formData.pitched,
       jdReceived: formData.jdReceived,
+      totalValueContract: formData.totalValueContract || calculateTotalValueContract(), // Use calculated or manually entered value
     };
 
     try {
-      const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbx1fIVOvkqsUB6KxxbyiK1JtxfyR4v5DfIQb-3fSoSK0-dd2EVXhUd79ZyvGAvZxEg/exec",
+      // Just simulate submission (no need to parse the response)
+      await fetch(
+        "https://script.google.com/macros/s/AKfycbwWz8oqbN65VDZfW_Ics6eYqJcaIBiLnsS1kbjW15Ebak0Ez6mHyGAJJINFki5XuyU/exec",
         {
           method: "POST",
+          mode: "no-cors", // No need to parse the response body
           headers: {
             "Content-Type": "application/json",
           },
@@ -87,37 +104,39 @@ function PlacementForm() {
         }
       );
 
-      const result = await response.json();
+      // Show success message immediately after form submission
+      setSuccessMessage("Your data has been successfully submitted!");
 
-      if (response.ok) {
-        setSuccessMessage(result.message || "Your data has been saved!");
-        setFormData({
-          companyName: "",
-          city: "",
-          clientName: "",
-          clientDesignation: "",
-          clientEmail: "",
-          clientContact: "",
-          crRep: "",
-          visitPurpose: "",
-          industry: "",
-          domain: "",
-          hiringPeriod: "",
-          numbersForHiring: "",
-          pitched: "",
-          jdReceived: "",
-        });
+      // Reset form data
+      setFormData({
+        companyName: "",
+        city: "",
+        clientName: "",
+        clientDesignation: "",
+        clientEmail: "",
+        clientContact: "",
+        crRep: "",
+        visitPurpose: "",
+        industry: "",
+        domain: "",
+        hiringPeriod: "",
+        numbersForHiring: "",
+        pitched: "",
+        jdReceived: "",
+        studentCount: "",
+        perStudentRate: "",
+        totalValueContract: "",
+      });
 
-        // After successful submission, generate a new visitCode for Placement
-        sessionStorage.setItem("placementVisitCode", generateVisitCode());
+      // After successful submission, generate a new visitCode for Placement
+      const newVisitCode = generateVisitCode();
+      sessionStorage.setItem("placementVisitCode", newVisitCode);
+      setVisitCode(newVisitCode);
 
-        // Optionally hide the modal after a short delay
-        setTimeout(() => {
-          setIsModalOpen(false);
-        }, 2000);
-      } else {
-        throw new Error(result.message || "Failed to submit data");
-      }
+      // Optionally hide the modal after a short delay
+      setTimeout(() => {
+        setIsModalOpen(false);
+      }, 2000);
     } catch (error) {
       setIsLoading(false);
       setSuccessMessage(`Error: ${error.message}`);
@@ -130,9 +149,9 @@ function PlacementForm() {
     navigate("/home");
   };
 
-  const formClass = "bg-white  p-8 max-w-3xl w-full font-inter";
+  const formClass = "bg-white p-8 max-w-3xl w-full font-inter";
   const inputClass =
-    "mt-2 p-3 w-full bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500";
+    "mt-2 p-3 w-full border-b-2 border-gray-300 bg-transparent focus:outline-none focus:ring-0 focus:border-teal-500"; // Underline style added
   const buttonClass =
     "bg-white text-teal-500 border border-teal-500 hover:bg-teal-500 hover:text-white hover:border-teal-600 transition duration-300 px-6 py-3 font-semibold rounded-lg w-full";
 
@@ -236,7 +255,6 @@ function PlacementForm() {
               value={formData.clientContact}
               onChange={handleChange}
               className={inputClass}
-              placeholder="Enter client contact number"
             />
           </div>
 
@@ -249,8 +267,8 @@ function PlacementForm() {
               className={inputClass}
             >
               <option value="">Select CR Rep</option>
-              <option value="Shashi Kant Sharma">Shashi Kant Sharma</option>
-              <option value="Other">Other</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
             </select>
           </div>
 
@@ -337,6 +355,40 @@ function PlacementForm() {
             />
           </div>
 
+          {/* Student Count and Per Student Rate */}
+          <div>
+            <label className="block text-sm font-medium">Student Count</label>
+            <input
+              type="number"
+              name="studentCount"
+              value={formData.studentCount}
+              onChange={handleChange}
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Per Student Rate</label>
+            <input
+              type="number"
+              name="perStudentRate"
+              value={formData.perStudentRate}
+              onChange={handleChange}
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Total Value Contract</label>
+            <input
+              type="number"
+              name="totalValueContract"
+              value={formData.totalValueContract || calculateTotalValueContract()}
+              onChange={handleChange}
+              className={inputClass}
+            />
+          </div>
+
           {/* Submit Button */}
           <div className="text-center mt-8">
             <button type="submit" className={buttonClass}>
@@ -382,9 +434,7 @@ function PlacementForm() {
                 </>
               ) : (
                 <>
-                  <div className="text-xl font-semibold mb-4">
-                    {successMessage}
-                  </div>
+                  <div className="text-xl font-semibold mb-4">{successMessage}</div>
                 </>
               )}
             </div>

@@ -56,7 +56,7 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-2 mb-12">
-      <div className="bg-white p-4 rounded-lg max-w-lg w-full relative">
+      <div className="bg-white p-4 rounded-lg max-w-lg w-full relative max-h-[90vh] overflow-y-auto">
         <div
           onClick={onClose}
           className="absolute top-2 right-2 w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center cursor-pointer"
@@ -112,66 +112,66 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
         {/* Additional Colleges - Dynamic Fields */}
         {visitType === "Multiple Visit" && (
           <>
-{additionalColleges.map((college, index) => (
-  <div key={index} className="mt-4">
-    {/* College Input Field */}
-    <div>
-      <label className="text-gray-700 font-medium">College Name {index + 2}:</label>
-      <input
-        type="text"
-        value={college}
-        onChange={(e) => handleCollegeChange(index, e.target.value)}
-        className="border border-gray-300 rounded-md w-full p-2 mt-2"
-        placeholder={`Enter college name ${index + 2}`}
-      />
-    </div>
+            {additionalColleges.map((college, index) => (
+              <div key={index} className="mt-4">
+                {/* College Input Field */}
+                <div>
+                  <label className="text-gray-700 font-medium">College Name {index + 2}:</label>
+                  <input
+                    type="text"
+                    value={college}
+                    onChange={(e) => handleCollegeChange(index, e.target.value)}
+                    className="border border-gray-300 rounded-md w-full p-2 mt-2"
+                    placeholder={`Enter college name ${index + 2}`}
+                  />
+                </div>
 
-    {/* Delete Icon - Positioned Below the Input Field */}
-    <div className="flex justify-end mt-2">
-      <button
-        onClick={() => handleDeleteCollege(index)}
-        className="text-red-500 hover:text-red-700 flex items-center"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-          />
-        </svg>
-        <span className="ml-1">Delete</span>
-      </button>
-    </div>
-  </div>
-))}
-{/* "Add+" Button */}
-<button
-  onClick={handleAddCollege}
-  className="flex items-center justify-center mt-4 text-indigo-500 hover:text-indigo-700 border border-indigo-500 hover:border-indigo-700 rounded-md px-3 py-1.5 text-sm transition-all"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-4 w-4 mr-1"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 4v16m8-8H4"
-    />
-  </svg>
-  <span>Add College</span>
-</button>
+                {/* Delete Icon - Positioned Below the Input Field */}
+                <div className="flex justify-end mt-2">
+                  <button
+                    onClick={() => handleDeleteCollege(index)}
+                    className="text-red-500 hover:text-red-700 flex items-center"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    <span className="ml-1">Delete</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+            {/* "Add+" Button */}
+            <button
+              onClick={handleAddCollege}
+              className="flex items-center justify-center mt-4 text-indigo-500 hover:text-indigo-700 border border-indigo-500 hover:border-indigo-700 rounded-md px-3 py-1.5 text-sm transition-all"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              <span>Add College</span>
+            </button>
           </>
         )}
 

@@ -74,7 +74,7 @@ const Navbar = ({ isAuthenticated }) => {
       {/* Profile Tab */}
       <div className="text-center">
         <Link
-          to="/spent"
+          to="/underconstruction"
           className={`flex flex-col items-center text-sm px-4 py-2 rounded-full transition-colors duration-300 ${isProfileActive ? 'text-green-500' : 'text-white'}`}
         >
           <FaUserAlt size={24} className={isProfileActive ? 'text-green-500' : 'text-white'} />

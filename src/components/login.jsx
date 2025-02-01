@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { auth, signInWithEmailAndPassword } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom"; // For navigation
 
@@ -8,6 +7,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Loading");
+  const [emailError, setEmailError] = useState(""); // New state for email-specific error
   const navigate = useNavigate(); // Hook for navigation after successful login
 
   // Form validation
@@ -16,31 +17,55 @@ const Login = () => {
       setError("Please fill in both fields.");
       return false;
     }
-  
+
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     if (!emailRegex.test(email)) {
       setError("Please enter a valid email.");
       return false;
     }
-  
+
     setError("");
     return true;
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
+    setEmailError(""); // Reset email-specific error message
+
+    // Set the loading text animation for 2 seconds
+    setTimeout(() => {
       setLoading(false);
-      navigate("/sales"); // Navigate after successful login
+      setLoadingText("Loading"); // Reset to default text after 2 seconds
+    }, 2000); // Loader duration set to 2 seconds
+
+    try {
+      // Check if email is in the allowed list
+      if (
+        email === "ajaypawargryphon@gmail.com" ||
+        email === "mrajaypawar207@gmail.com"
+      ) {
+        await signInWithEmailAndPassword(auth, email, password);
+
+        // Redirect based on email
+        if (email === "ajaypawargryphon@gmail.com") {
+          sessionStorage.setItem("userEmail", email);
+          navigate("/sales"); // Redirect to sales page
+        } else if (email === "mrajaypawar207@gmail.com") {
+          sessionStorage.setItem("userEmail", email);
+          navigate("/placement"); // Redirect to placement page
+        }
+      } else {
+        // If email is not registered, show email-specific error message
+        setEmailError("Email is not registered. Contact Admin.");
+        setLoading(false); // Stop loading when email is not found
+      }
     } catch (error) {
       setLoading(false);
       if (error.code === "auth/wrong-password") {
-        setError("Incorrect password.");
+        setError("Oops! The password you entered is incorrect.");
       } else if (error.code === "auth/user-not-found") {
         setError("No user found with this email.");
       } else {
@@ -49,19 +74,30 @@ const Login = () => {
     }
   };
 
+  // Handle the loading dots animation
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      interval = setInterval(() => {
+        setLoadingText((prevText) => {
+          if (prevText.length < 10) {
+            return prevText + "."; // Adds a dot every 500ms
+          }
+          return "Loading"; // Resets after reaching "Loading..."
+        });
+      }, 500); // Updates every 500ms
+    } else {
+      setLoadingText("Loading");
+      clearInterval(interval); // Clears the interval when loading is complete
+    }
+
+    return () => clearInterval(interval); // Cleanup on unmount or when loading stops
+  }, [loading]);
+
   return (
     <div className="min-h-screen flex justify-center items-center bg-gray-200 relative px-4 sm:px-6 lg:px-8">
-      {/* Funky Shapes with responsive sizes */}
-      <div className="absolute top-10 left-10 w-32 h-32 bg-blue-500 rounded-full opacity-40 sm:w-40 sm:h-40 lg:w-48 lg:h-48"></div>
-      <div className="absolute bottom-2 right-10 w-48 h-48 bg-green-400 rounded-full opacity-30 sm:w-56 sm:h-56 lg:w-64 lg:h-64"></div>
-      <div className="absolute top-2 right-24 w-60 h-48 bg-red-500 opacity-20 rounded-lg sm:w-72 sm:h-56 lg:w-80 lg:h-64"></div>
-      <div className="absolute bottom-10 left-10 w-56 h-56 bg-yellow-400 rounded-full opacity-30 sm:w-64 sm:h-64 lg:w-72 lg:h-72"></div>
-
       {/* Login Modal */}
       <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl w-full sm:w-96 lg:w-1/3 z-10 relative overflow-hidden">
-        {/* Gradient Fog Effect inside the modal */}
-        <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-blue-200 via-transparent to-transparent opacity-50 z-[-1]"></div>
-
         <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-4 sm:mb-6 relative z-10">
           Welcome Back!
         </h2>
@@ -79,9 +115,13 @@ const Login = () => {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-300 shadow-sm hover:shadow-md z-20"
+              className="mt-1 w-full px-4 py-2 border-2 border-gray-300 rounded-full"
               required
             />
+            {/* Show the email-specific error */}
+            {emailError && (
+              <p className="text-sm text-red-500 mt-2 text-center">{emailError}</p>
+            )}
           </div>
 
           <div className="mb-6">
@@ -97,32 +137,44 @@ const Login = () => {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-300 shadow-sm hover:shadow-md z-10"
+              className="mt-1 w-full px-4 py-2 border-2 border-gray-300 rounded-full"
               required
             />
           </div>
 
-          {error && <p className="text-sm text-red-500 mb-4 z-10">{error}</p>}
-
+          {error && (
+            <p className="text-sm text-red-500 bg-red-100 p-2 rounded-lg mb-4">
+              {error}
+            </p>
+          )}
           <button
             type="submit"
             className={`w-full py-2 px-4 bg-blue-500 text-white rounded-full font-medium transition duration-200 ${
               loading ? "bg-blue-300" : "hover:bg-blue-600"
-            } z-10`}
+            }`}
             disabled={loading}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? (
+              <div className="flex justify-center items-center">
+                <div className="w-5 h-5 border-t-2 border-white border-solid rounded-full animate-spin border-t-blue-300"></div>
+                <span className="ml-2 text-white">Logging in...</span>
+              </div>
+            ) : (
+              "Login"
+            )}
           </button>
         </form>
-        <div className="mt-4 text-center z-10">
-          <Link
-            to="/forgetpassword"
-            className="text-sm text-blue-500 hover:underline"
-          >
-            Forgot Password?
-          </Link>
-        </div>
       </div>
+
+      {/* Loading Overlay with Animated Dots */}
+      {loading && (
+        <div className="absolute inset-0 flex justify-center items-center bg-gray-700 bg-opacity-50 z-20 min-h-screen">
+          <div className="flex flex-col items-center justify-center">
+            <div className="w-16 h-16 border-4 border-t-4 border-white border-solid rounded-full animate-spin mb-4"></div>
+            <p className="text-white text-xl">{loadingText}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

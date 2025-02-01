@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// Remove unused auth import
+import SalesUserDropdown from "./SalesUserDropdown";
+import SalesBackButton from "./SalesBackButton";
 
 function SalesForm() {
   const [formData, setFormData] = useState({
     collegeName: "",
     city: "",
     clientName: "",
-    clientDesignation: "",
-    clientContact: "",
+    clientDesignation: "", // Add this
+    clientContact: "", // Add this
+    accreditation: "",
+    otherAccreditation: "",
+    affiliation: "",
+    otherAffiliation: "",
     salesRep: "",
     visitPurpose: "",
     courses: "",
@@ -19,22 +25,20 @@ function SalesForm() {
     remarks: "",
   });
 
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const navigate = useNavigate();
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  // const navigate = useNavigate(); // Only include if actually used
 
-  // Dynamically generate Visit Code for Sales
   const generateVisitCode = () => {
-    return `SALES-VIST-${Math.floor(Math.random() * 10000)}`; // Unique visit code for Sales
+    return `SALES-VIST-${Math.floor(Math.random() * 10000)}`;
   };
 
-  // Use sessionStorage to persist visitCode for Sales
   const [visitCode, setVisitCode] = useState(
     sessionStorage.getItem("salesVisitCode") || generateVisitCode()
   );
 
-  // Store the generated visitCode in sessionStorage for Sales if it wasn't already set
   useEffect(() => {
     if (!sessionStorage.getItem("salesVisitCode")) {
       sessionStorage.setItem("salesVisitCode", visitCode);
@@ -49,130 +53,108 @@ function SalesForm() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setIsModalOpen(true);
-    setIsLoading(true);
-  
-    // Prepare the data to be sent
-    const data = {
-      visitCode: visitCode, // Use the sales-specific visitCode here
-      collegeName: formData.collegeName,
-      city: formData.city,
-      clientName: formData.clientName,
-      clientDesignation: formData.clientDesignation,
-      clientContact: formData.clientContact,
-      salesRep: formData.salesRep,
-      visitPurpose: formData.visitPurpose,
-      courses: formData.courses,
-      visitPhase: formData.visitPhase,
-      autoDate: formData.autoDate,
-      studentCount: formData.studentCount,
-      perStudentRate: formData.perStudentRate,
-      totalContractValue: formData.totalContractValue,
-      remarks: formData.remarks,
-    };
-  
-    console.log("Data to be sent:", data); // Log the data being sent to the API
-  
-    try {
-      const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbwOcxnhBVBjjwP8ZrRe-RtpNcc3xnwUaqBDV4IyeeD_IjygzNLSajhqJfka5ruChHQ/exec",
-        {
-          method: 'POST',
-          mode: 'no-cors', // No-cors mode
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-          credentials: "include",
-        }
-      );
-  
-      // Since we are using no-cors, we cannot access response content
-      console.log("Request sent, but cannot access the response body due to 'no-cors' mode.");
-  
-      // Since no-cors doesn't allow us to check the response body,
-      // assume the request is successful if no errors were thrown.
-      setSuccessMessage("Data submitted successfully!");
-    } catch (error) {
-      console.error("Error during submission:", error); // Log the error
-      setSuccessMessage(`Error: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-
-      // Close the modal after 2 seconds
-      setTimeout(() => {
-        setIsModalOpen(false); // Close modal
-        setSuccessMessage(""); // Clear success message
-        setFormData({ // Reset form data
-          collegeName: "",
-          city: "",
-          clientName: "",
-          clientDesignation: "",
-          clientContact: "",
-          salesRep: "",
-          visitPurpose: "",
-          courses: "",
-          visitPhase: "",
-          autoDate: "",
-          studentCount: "",
-          perStudentRate: "",
-          totalContractValue: "",
-          remarks: "",
-        });
-
-        // Reset visitCode (clear sessionStorage so it regenerates next time)
-        sessionStorage.removeItem("salesVisitCode");
-        setVisitCode(generateVisitCode()); // Generate a new visitCode
-      }, 2000);
-    }
+    setIsConfirmModalOpen(true);
   };
 
-  const handleBack = () => {
-    navigate("/home");
+  const handleConfirmSubmit = async () => {
+    setIsConfirmModalOpen(false);
+    setIsModalOpen(true);
+    setIsLoading(true);
+
+    setTimeout(async () => {
+      const data = {
+        visitCode: visitCode,
+        collegeName: formData.collegeName,
+        city: formData.city,
+        clientName: formData.clientName,
+        clientDesignation: formData.clientDesignation,
+        clientContact: formData.clientContact,
+        accreditation:
+          formData.accreditation === "Other"
+            ? formData.otherAccreditation
+            : formData.accreditation,
+        affiliation:
+          formData.affiliation === "Other"
+            ? formData.otherAffiliation
+            : formData.affiliation,
+        salesRep: formData.salesRep,
+        visitPurpose: formData.visitPurpose,
+        courses: formData.courses,
+        visitPhase: formData.visitPhase,
+        autoDate: formData.autoDate,
+        studentCount: formData.studentCount,
+        perStudentRate: formData.perStudentRate,
+        totalContractValue: formData.totalContractValue,
+        remarks: formData.remarks,
+      };
+
+      try {
+        // Remove unused response variable
+        await fetch(
+          "https://script.google.com/macros/s/AKfycbzlRBPxthm_Mj6wjblJI61Yx9C0Urw3VnzmHjHjJJSjSq0JhFPTg8S2nf-SU94CR0I/exec",
+          {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+            credentials: "include",
+          }
+        );
+        setSuccessMessage("Data submitted successfully!");
+      } catch (error) {
+        console.error("Error during submission:", error);
+        setSuccessMessage(`Error: ${error.message}`);
+      } finally {
+        setIsLoading(false);
+        setTimeout(() => {
+          setIsModalOpen(false);
+          setSuccessMessage("");
+          setFormData({
+            collegeName: "",
+            city: "",
+            clientName: "",
+            clientDesignation: "", // Reset this
+            clientContact: "", // Reset this
+            accreditation: "",
+            otherAccreditation: "",
+            affiliation: "",
+            otherAffiliation: "",
+            salesRep: "",
+            visitPurpose: "",
+            courses: "",
+            visitPhase: "",
+            autoDate: "",
+            studentCount: "",
+            perStudentRate: "",
+            totalContractValue: "",
+            remarks: "",
+          });
+          sessionStorage.removeItem("salesVisitCode");
+          setVisitCode(generateVisitCode());
+        }, 2000);
+      }
+    }, 500);
   };
 
   const formClass = "bg-white p-8 max-w-3xl w-full font-inter";
   const inputClass =
-    "mt-2 p-3 w-full bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500";
+    "p-2 w-full border-2 rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none";
   const buttonClass =
-    "bg-white text-teal-500 border border-teal-500 hover:bg-teal-500 hover:text-white hover:border-teal-600 transition duration-300 px-6 py-3 font-semibold rounded-lg w-full";
+    "bg-indigo-500 text-white px-8 py-3 rounded-lg hover:bg-indigo-600 transition-colors";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-200 via-teal-100 to-slate-50">
+    <div className="flex items-center justify-center min-h-screen bg-white">
       <form onSubmit={handleSubmit} className={formClass}>
         <div className="flex justify-between items-center mb-4">
-          {/* Back Button */}
-          <button
-            type="button"
-            onClick={handleBack}
-            className="text-sm font-semibold underline flex items-center"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              className="mr-2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 12H5m7-7l-7 7 7 7"
-              />
-            </svg>
-            Back
-          </button>
-
-          {/* Visit Code */}
+          <SalesBackButton />
           <div className="text-sm font-semibold">{visitCode}</div>
+          <SalesUserDropdown />
         </div>
 
-        {/* Input Fields */}
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium">College Name</label>
@@ -182,7 +164,6 @@ function SalesForm() {
               value={formData.collegeName}
               onChange={handleChange}
               className={inputClass}
-              required
             />
           </div>
 
@@ -194,7 +175,6 @@ function SalesForm() {
               value={formData.city}
               onChange={handleChange}
               className={inputClass}
-              required
             />
           </div>
 
@@ -209,6 +189,7 @@ function SalesForm() {
             />
           </div>
 
+          {/* Add Client Designation Field */}
           <div>
             <label className="block text-sm font-medium">
               Client Designation
@@ -222,6 +203,7 @@ function SalesForm() {
             />
           </div>
 
+          {/* Add Client Contact Field */}
           <div>
             <label className="block text-sm font-medium">Client Contact</label>
             <input
@@ -231,6 +213,67 @@ function SalesForm() {
               onChange={handleChange}
               className={inputClass}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Accreditation</label>
+            <select
+              name="accreditation"
+              value={formData.accreditation}
+              onChange={handleChange}
+              className={inputClass}
+            >
+              <option value="">Select Accreditation</option>
+              <option value="NBA">NBA</option>
+              <option value="NRIF">NRIF</option>
+              <option value="NAAC">NAAC</option>
+              <option value="NABH">NABH</option>
+              <option value="Other">Other</option>
+            </select>
+
+            {/* Show this input only if "Other" is selected */}
+            {formData.accreditation === "Other" && (
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="otherAccreditation"
+                  value={formData.otherAccreditation}
+                  onChange={handleChange}
+                  className={inputClass}
+                  placeholder="Enter other accreditation"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Affiliation Field */}
+          <div>
+            <label className="block text-sm font-medium">Affiliation</label>
+            <select
+              name="affiliation"
+              value={formData.affiliation}
+              onChange={handleChange}
+              className={inputClass}
+            >
+              <option value="">Select Affiliation</option>
+              <option value="Autonomous">Autonomous</option>
+              <option value="SPPU">SPPU</option>
+              <option value="Other">Other</option>
+            </select>
+
+            {/* Show this input only if "Other" is selected */}
+            {formData.affiliation === "Other" && (
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="otherAffiliation"
+                  value={formData.otherAffiliation}
+                  onChange={handleChange}
+                  className={inputClass}
+                  placeholder="Enter other affiliation"
+                />
+              </div>
+            )}
           </div>
 
           <div>
@@ -271,13 +314,24 @@ function SalesForm() {
 
           <div>
             <label className="block text-sm font-medium">Visit Phase</label>
-            <input
-              type="text"
+            <select
               name="visitPhase"
               value={formData.visitPhase}
               onChange={handleChange}
               className={inputClass}
-            />
+            >
+              <option value="">Select Visit Phase</option>
+              <option value="Lead">Lead</option>
+              <option value="Follow up - I">Follow up - I</option>
+              <option value="Follow up - II">Follow up - II</option>
+              <option value="Follow up - III">Follow up - III</option>
+              <option value="Follow up - IV">Follow up - IV</option>
+              <option value="Follow up - V">Follow up - V</option>
+              <option value="Follow up - VI">Follow up - VI</option>
+              <option value="Follow up - VII">Follow up - VII</option>
+              <option value="Follow up - VIII">Follow up - VIII</option>
+              <option value="Closure">Closure</option>
+            </select>
           </div>
 
           <div>
@@ -391,6 +445,57 @@ function SalesForm() {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50 px-8">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-auto text-center relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setIsConfirmModalOpen(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-900"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                className="stroke-current"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            {/* Confirmation Modal Content */}
+            <div>
+              <div className="text-xl font-semibold mb-4">
+                Are you sure you want to submit the form?
+              </div>
+              <div className="space-x-4">
+                <button
+                  onClick={handleConfirmSubmit}
+                  className="bg-indigo-500 text-white px-6 py-2 rounded-lg"
+                >
+                  Confirm
+                </button>
+                <button
+                  onClick={() => setIsConfirmModalOpen(false)}
+                  className="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>

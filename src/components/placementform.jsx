@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../firebaseConfig"; // Firebase auth import
+import { signOut } from "firebase/auth"; // Firebase sign-out method
 
 function PlacementForm() {
   const [formData, setFormData] = useState({
@@ -12,19 +14,20 @@ function PlacementForm() {
     crRep: "",
     visitPurpose: "",
     industry: "",
-    domain: "",
+    domain: "", // This will store the selected domain (default dropdown value)
+    otherDomain: "", // This will store the custom domain if 'Other' is selected
     hiringPeriod: "",
     numbersForHiring: "",
     pitched: "",
     jdReceived: "",
-    studentCount: "", // Assuming you have these fields already
-    perStudentRate: "", // Assuming you have these fields already
-    totalValueContract: "", // Optional manual input for total value
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [successMessage, setSuccessMessage] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false); // Track dropdown state
+  // Inside your component function:
+  const dropdownRef = useRef(null); // Create a ref for the dropdown
 
   const navigate = useNavigate();
 
@@ -45,6 +48,24 @@ function PlacementForm() {
     }
   }, [visitCode]);
 
+  useEffect(() => {
+    // Function to handle clicks outside the dropdown
+    const handleClickOutside = (event) => {
+      // Check if the click is outside of the dropdown
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false); // Close the dropdown if clicked outside
+      }
+    };
+
+    // Attach the event listener to the document
+    document.addEventListener("mousedown", handleClickOutside);
+
+    // Cleanup the event listener when the component is unmounted
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -53,14 +74,23 @@ function PlacementForm() {
     }));
   };
 
-  // Function to calculate Total Value Contract automatically
-  const calculateTotalValueContract = () => {
-    const studentCount = parseInt(formData.studentCount, 10);
-    const perStudentRate = parseFloat(formData.perStudentRate);
-    if (!isNaN(studentCount) && !isNaN(perStudentRate)) {
-      return studentCount * perStudentRate;
-    }
-    return ""; // Return empty if calculation can't be made
+  // Handle change for the domain dropdown
+  const handleDomainChange = (e) => {
+    const { value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      domain: value,
+      otherDomain: value === "Other" ? prevData.otherDomain : "", // Reset custom domain if not "Other"
+    }));
+  };
+
+  // Handle the custom domain input
+  const handleOtherDomainChange = (e) => {
+    const { value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      otherDomain: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -69,9 +99,12 @@ function PlacementForm() {
     setIsModalOpen(true);
     setIsLoading(true);
 
-    // Prepare the data to be sent, including the dynamically generated visitCode
+    // Use the custom domain if 'Other' was selected, else use the selected domain
+    const finalDomain =
+      formData.domain === "Other" ? formData.otherDomain : formData.domain;
+
     const data = {
-      visitCode: visitCode, // Use the placement-specific visitCode here
+      visitCode: visitCode,
       companyName: formData.companyName,
       city: formData.city,
       clientName: formData.clientName,
@@ -81,30 +114,29 @@ function PlacementForm() {
       crRep: formData.crRep,
       visitPurpose: formData.visitPurpose,
       industry: formData.industry,
-      domain: formData.domain,
+      domain: finalDomain, // Set domain to the custom value if 'Other' is selected
       hiringPeriod: formData.hiringPeriod,
       numbersForHiring: formData.numbersForHiring,
       pitched: formData.pitched,
       jdReceived: formData.jdReceived,
-      totalValueContract: formData.totalValueContract || calculateTotalValueContract(), // Use calculated or manually entered value
     };
 
     try {
-      // Just simulate submission (no need to parse the response)
+      // Simulate submission
       await fetch(
         "https://script.google.com/macros/s/AKfycbwWz8oqbN65VDZfW_Ics6eYqJcaIBiLnsS1kbjW15Ebak0Ez6mHyGAJJINFki5XuyU/exec",
         {
           method: "POST",
-          mode: "no-cors", // No need to parse the response body
+          mode: "no-cors",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
-          credentials: "include", // Ensures cookies are sent if necessary (for CORS)
+          credentials: "include",
         }
       );
 
-      // Show success message immediately after form submission
+      // Show success message after form submission
       setSuccessMessage("Your data has been successfully submitted!");
 
       // Reset form data
@@ -119,21 +151,18 @@ function PlacementForm() {
         visitPurpose: "",
         industry: "",
         domain: "",
+        otherDomain: "", // Reset custom domain
         hiringPeriod: "",
         numbersForHiring: "",
         pitched: "",
         jdReceived: "",
-        studentCount: "",
-        perStudentRate: "",
-        totalValueContract: "",
       });
 
-      // After successful submission, generate a new visitCode for Placement
       const newVisitCode = generateVisitCode();
       sessionStorage.setItem("placementVisitCode", newVisitCode);
       setVisitCode(newVisitCode);
 
-      // Optionally hide the modal after a short delay
+      // Hide the modal after a short delay
       setTimeout(() => {
         setIsModalOpen(false);
       }, 2000);
@@ -145,18 +174,31 @@ function PlacementForm() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Firebase logout
+      navigate("/home"); // Redirect to login page after logout
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen); // Toggle dropdown visibility
+  };
+
   const handleBack = () => {
     navigate("/home");
   };
 
   const formClass = "bg-white p-8 max-w-3xl w-full font-inter";
   const inputClass =
-    "mt-2 p-3 w-full border-b-2 border-gray-300 bg-transparent focus:outline-none focus:ring-0 focus:border-teal-500"; // Underline style added
+    "mt-2 p-2 w-full border-b-2 border-gray-300 bg-transparent focus:outline-none focus:ring-0 focus:border-teal-500"; // Underline style added
   const buttonClass =
     "bg-white text-teal-500 border border-teal-500 hover:bg-teal-500 hover:text-white hover:border-teal-600 transition duration-300 px-6 py-3 font-semibold rounded-lg w-full";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-200 via-teal-100 to-slate-50">
+    <div className="flex items-center justify-center min-h-screen bg-white">
       <form onSubmit={handleSubmit} className={formClass}>
         <div className="flex justify-between items-center mb-4">
           {/* Back Button */}
@@ -186,6 +228,34 @@ function PlacementForm() {
 
           {/* Visit Code */}
           <div className="text-sm font-semibold">{visitCode}</div>
+          {/* User Profile Circle */}
+          <div className="relative">
+            <div
+              className="w-10 h-10 rounded-full bg-blue-100 cursor-pointer flex items-center justify-center text-white"
+              onClick={toggleDropdown} // Toggle the dropdown on click
+            >
+              <img
+                src="/user.png" // Reference to the image in the public folder
+                alt="Profile"
+                className="w-full h-full object-cover rounded-full"
+              />
+            </div>
+
+            {/* Dropdown for Logout */}
+            {dropdownOpen && (
+              <div
+                ref={dropdownRef} // Attach the ref to the dropdown container
+                className="absolute right-0 mt-2 bg-white border rounded-lg shadow-lg w-40"
+              >
+                <button
+                  onClick={handleLogout}
+                  className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Input Fields */}
@@ -226,7 +296,9 @@ function PlacementForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Client Designation</label>
+            <label className="block text-sm font-medium">
+              Client Designation
+            </label>
             <input
               type="text"
               name="clientDesignation"
@@ -248,7 +320,9 @@ function PlacementForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Client Contact No.</label>
+            <label className="block text-sm font-medium">
+              Client Contact No.
+            </label>
             <input
               type="text"
               name="clientContact"
@@ -267,8 +341,8 @@ function PlacementForm() {
               className={inputClass}
             >
               <option value="">Select CR Rep</option>
-              <option value="Yes">Yes</option>
-              <option value="No">No</option>
+              <option value="Yes">Shashi Kant Sir</option>
+              <option value="No">Other</option>
             </select>
           </div>
 
@@ -299,13 +373,28 @@ function PlacementForm() {
             <select
               name="domain"
               value={formData.domain}
-              onChange={handleChange}
+              onChange={handleDomainChange}
               className={inputClass}
             >
               <option value="">Select Domain</option>
               <option value="Engineering">Engineering</option>
               <option value="MBA">MBA</option>
+              <option value="Other">Other</option>
             </select>
+
+            {/* Show additional input for custom domain when "Other" is selected */}
+            {formData.domain === "Other" && (
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="otherDomain"
+                  value={formData.otherDomain}
+                  onChange={handleOtherDomainChange}
+                  className={inputClass}
+                  placeholder="Enter Other Domain"
+                />
+              </div>
+            )}
           </div>
 
           <div>
@@ -320,7 +409,9 @@ function PlacementForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Numbers for Hiring</label>
+            <label className="block text-sm font-medium">
+              Numbers for Hiring
+            </label>
             <input
               type="number"
               name="numbersForHiring"
@@ -350,40 +441,6 @@ function PlacementForm() {
               type="text"
               name="jdReceived"
               value={formData.jdReceived}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
-
-          {/* Student Count and Per Student Rate */}
-          <div>
-            <label className="block text-sm font-medium">Student Count</label>
-            <input
-              type="number"
-              name="studentCount"
-              value={formData.studentCount}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Per Student Rate</label>
-            <input
-              type="number"
-              name="perStudentRate"
-              value={formData.perStudentRate}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Total Value Contract</label>
-            <input
-              type="number"
-              name="totalValueContract"
-              value={formData.totalValueContract || calculateTotalValueContract()}
               onChange={handleChange}
               className={inputClass}
             />
@@ -434,7 +491,9 @@ function PlacementForm() {
                 </>
               ) : (
                 <>
-                  <div className="text-xl font-semibold mb-4">{successMessage}</div>
+                  <div className="text-xl font-semibold mb-4">
+                    {successMessage}
+                  </div>
                 </>
               )}
             </div>

@@ -6,7 +6,7 @@ import { db } from "../firebaseConfig"; // Use named import instead of default
 // const app = initializeApp(firebaseConfig);
 // const db = getDatabase(app);  <-- Remove this line
 
-function Submit() {
+function PlacementFormSubmit() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [spentAmount, setSpentAmount] = useState("");
   const [savedData, setSavedData] = useState(null);
@@ -227,16 +227,16 @@ function Submit() {
   };
 
   return (
-    <div className="flex justify-center font-inter items-center bg-white lg:bg-gradient-to-r from-blue-200 via-teal-100 to-slate-50 mb-10 pt-2 pb-4">
-      <div className="flex space-x-12 max-w-2xl ">
+    <div className="flex justify-center font-inter items-center bg-white  mb-10 pt-2 pb-4">
+<div className="flex space-x-12 max-w-2xl ">
         <button
-          className="bg-white text-blue-500 border border-blue-500 px-4 py-2 rounded w-full"
+          className="bg-white text-blue-500 border-2 border-blue-500 px-10 py-2  w-full hover:bg-blue-500 hover:text-white hover:border-blue-600"
           onClick={handleOpenModal}
         >
           Spent
         </button>
         <button
-          className="bg-white text-blue-500 border border-blue-500 px-4 py-2 rounded w-full"
+          className="bg-white text-blue-500 border-2 border-blue-500 px-10 py-2  w-full hover:bg-blue-500 hover:text-white hover:border-blue-600"
           onClick={handleOpenBillModal}
         >
           Bills
@@ -421,4 +421,4 @@ function Submit() {
   );
 }
 
-export default Submit;
+export default PlacementFormSubmit;

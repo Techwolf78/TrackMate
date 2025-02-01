@@ -131,7 +131,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-10">
+    <div className="max-w-7xl mx-auto p-6 space-y-10 font-inter">
       {/* New Section for Small Screens (Visible on Small Screens Only) */}
       <div className="block md:hidden bg-yellow-100 p-6 rounded-lg shadow-lg">
         <h3 className="text-xl font-semibold text-gray-700 mb-4">Please open this section on a large screen only.</h3>

@@ -1,9 +1,8 @@
-// Import Firebase dependencies
 import { initializeApp } from "firebase/app";
+import { getStorage } from "firebase/storage";
 import { getDatabase } from "firebase/database";
-import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth"; // Import sendPasswordResetEmail
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
-// Your Firebase config object (replace with your actual Firebase project details)
 const firebaseConfig = {
   apiKey: "AIzaSyCXx4-4zpjt0C6em8ZmhVruGYHc9AJsENs",
   authDomain: "visit-app-98ce3.firebaseapp.com",
@@ -15,14 +14,9 @@ const firebaseConfig = {
   measurementId: "G-J94K7M9HF0"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Get a reference to the Realtime Database
 const db = getDatabase(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
 
-// Initialize Firebase Auth
-const auth = getAuth(app); // This will give you the auth instance
-
-// Export both the auth, db, signInWithEmailAndPassword, and sendPasswordResetEmail
-export { auth, db, signInWithEmailAndPassword, sendPasswordResetEmail };  // Add sendPasswordResetEmail to exports
+export { auth, storage, db, signInWithEmailAndPassword, sendPasswordResetEmail };

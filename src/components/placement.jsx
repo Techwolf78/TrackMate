@@ -5,7 +5,7 @@ import PlacementFormSubmit from './placementformsubmit';  // Importing Submit co
 
 function Sales() {
   return (
-    <div className='bg-gradient-to-r from-blue-200 via-teal-100 to-slate-50 font-inter '>
+    <div className='bg-white font-inter '>
       <PlacementForm />  {/* You can use SalesForm here */}
       <PlacementFormSubmit />     {/* You can use Submit here */}
     </div>

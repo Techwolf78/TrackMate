@@ -246,35 +246,42 @@ function SalesForm() {
             )}
           </div>
 
-          {/* Affiliation Field */}
-          <div>
-            <label className="block text-sm font-medium">Affiliation</label>
-            <select
-              name="affiliation"
-              value={formData.affiliation}
-              onChange={handleChange}
-              className={inputClass}
-            >
-              <option value="">Select Affiliation</option>
-              <option value="Autonomous">Autonomous</option>
-              <option value="SPPU">SPPU</option>
-              <option value="Other">Other</option>
-            </select>
+{/* Affiliation Field */}
+<div>
+  <label className="block text-sm font-medium">Affiliation</label>
+  <select
+    name="affiliation"
+    value={formData.affiliation}
+    onChange={handleChange}
+    className={inputClass}
+  >
+    <option value="">Select Affiliation</option>
+    <option value="Autonomous">Autonomous</option>
+    <option value="SPPU">Savitribai Phule Pune University (SPPU)</option>
+    <option value="Mumbai">University of Mumbai</option>
+    <option value="Shivaji">Shivaji University (Kolhapur)</option>
+    <option value="Ambedkar">Dr. Babasaheb Ambedkar Marathwada University (Aurangabad)</option>
+    <option value="Nagpur">Rashtrasant Tukadoji Maharaj Nagpur University</option>
+    <option value="Amravati">Sant Gadge Baba Amravati University</option>
+    <option value="North Maharashtra">North Maharashtra University (Jalgaon)</option>
+    <option value="Solapur">Solapur University</option>
+    <option value="Other">Other</option>
+  </select>
 
-            {/* Show this input only if "Other" is selected */}
-            {formData.affiliation === "Other" && (
-              <div className="mt-2">
-                <input
-                  type="text"
-                  name="otherAffiliation"
-                  value={formData.otherAffiliation}
-                  onChange={handleChange}
-                  className={inputClass}
-                  placeholder="Enter other affiliation"
-                />
-              </div>
-            )}
-          </div>
+  {/* Show this input only if "Other" is selected */}
+  {formData.affiliation === "Other" && (
+    <div className="mt-2">
+      <input
+        type="text"
+        name="otherAffiliation"
+        value={formData.otherAffiliation}
+        onChange={handleChange}
+        className={inputClass}
+        placeholder="Enter other affiliation"
+      />
+    </div>
+  )}
+</div>
 
           <div>
             <label className="block text-sm font-medium">Sales Rep</label>

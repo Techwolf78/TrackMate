@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
-// Remove unused auth import
 import SalesUserDropdown from "./SalesUserDropdown";
 import SalesBackButton from "./SalesBackButton";
+import AffiliationSelect from "./AffiliationSelect"; // Import the new component
 
 function SalesForm() {
   const [formData, setFormData] = useState({
     collegeName: "",
     city: "",
     clientName: "",
-    clientDesignation: "", // Add this
-    clientContact: "", // Add this
+    clientDesignation: "",
+    clientContact: "",
     accreditation: "",
     otherAccreditation: "",
     affiliation: "",
@@ -29,7 +29,6 @@ function SalesForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  // const navigate = useNavigate(); // Only include if actually used
 
   const generateVisitCode = () => {
     return `SALES-VIST-${Math.floor(Math.random() * 10000)}`;
@@ -246,42 +245,13 @@ function SalesForm() {
             )}
           </div>
 
-{/* Affiliation Field */}
-<div>
-  <label className="block text-sm font-medium">Affiliation</label>
-  <select
-    name="affiliation"
-    value={formData.affiliation}
-    onChange={handleChange}
-    className={inputClass}
-  >
-    <option value="">Select Affiliation</option>
-    <option value="Autonomous">Autonomous</option>
-    <option value="SPPU">Savitribai Phule Pune University (SPPU)</option>
-    <option value="Mumbai">University of Mumbai</option>
-    <option value="Shivaji">Shivaji University (Kolhapur)</option>
-    <option value="Ambedkar">Dr. Babasaheb Ambedkar Marathwada University (Aurangabad)</option>
-    <option value="Nagpur">Rashtrasant Tukadoji Maharaj Nagpur University</option>
-    <option value="Amravati">Sant Gadge Baba Amravati University</option>
-    <option value="North Maharashtra">North Maharashtra University (Jalgaon)</option>
-    <option value="Solapur">Solapur University</option>
-    <option value="Other">Other</option>
-  </select>
-
-  {/* Show this input only if "Other" is selected */}
-  {formData.affiliation === "Other" && (
-    <div className="mt-2">
-      <input
-        type="text"
-        name="otherAffiliation"
-        value={formData.otherAffiliation}
-        onChange={handleChange}
-        className={inputClass}
-        placeholder="Enter other affiliation"
-      />
-    </div>
-  )}
-</div>
+          {/* Affiliation Field */}
+        {/* Affiliation Select Component */}
+        <AffiliationSelect
+            affiliation={formData.affiliation}
+            otherAffiliation={formData.otherAffiliation}
+            handleChange={handleChange}
+          />
 
           <div>
             <label className="block text-sm font-medium">Sales Rep</label>

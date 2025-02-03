@@ -1,5 +1,4 @@
 // Sales.jsx
-import React from 'react';
 import SalesForm from './salesform';  // Importing SalesForm component
 import Submit from './submit';        // Importing Submit component
 

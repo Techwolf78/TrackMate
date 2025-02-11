@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { db } from "../firebaseConfig";
+import { db } from "../../../firebaseConfig";
 import { ref, set } from "firebase/database";
-import SpentModal from "./SpentModal";
-import BillsModal from "./BillsModal";
-import PlacementDocsModal from "./PlacementDocsModal"; // Import the new modal
+import SpentModal from "../../SpentModal";
+import BillsModal from "../../BillsModal";
+import PlacementDocsModal from "../../PlacementDocsModal"; // Import the new modal
 
 function Submit() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,35 +46,38 @@ function Submit() {
     }
   };
 
-  const saveToFirebase = (fileData) => {
-    const formattedDate = new Date(fileData.created_at).toLocaleString(
-      "en-US",
-      {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      }
-    );
-
-    const dbData = {
-      secure_url: fileData.secure_url,
-      public_id: fileData.public_id,
-      original_filename: fileData.original_filename,
-      size: fileData.bytes,
-      format: fileData.format,
-      created_at: formattedDate,
-    };
-
-    set(ref(db, `uploaded_files/${Date.now()}`), dbData).catch((error) => {
-      console.error("Firebase save error:", error);
-      setShowErrorToast(true);
-      setTimeout(() => setShowErrorToast(false), 3000);
+  const saveToFirebase = (fileData, folderName = "uploaded_files") => {
+    const formattedDate = new Date(fileData.created_at).toLocaleString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     });
+  
+    // Prepare the data to store in Firebase
+    const dbData = {
+      secure_url: fileData.secure_url,   // The secure URL of the uploaded image
+      public_id: fileData.public_id,     // Cloudinary public ID
+      original_filename: fileData.original_filename, // Original filename
+      size: fileData.bytes,              // Size in bytes
+      format: fileData.format,           // Image format (JPG, PNG, etc.)
+      width: fileData.width,             // Image width (from Cloudinary)
+      height: fileData.height,           // Image height (from Cloudinary)
+      created_at: formattedDate,         // Formatted creation date
+    };
+  
+    // Save data to Firebase
+    set(ref(db, `${folderName}/${Date.now()}`), dbData)
+      .catch((error) => {
+        console.error("Firebase save error:", error);
+        setShowErrorToast(true);
+        setTimeout(() => setShowErrorToast(false), 3000);
+      });
   };
+  
 
   return (
     <div className="flex justify-center font-inter items-center bg-white mb-10 pt-2 ">
@@ -113,6 +116,7 @@ function Submit() {
         saveToFirebase={saveToFirebase}
         setShowSuccessToast={setShowSuccessToast}
         setShowErrorToast={setShowErrorToast}
+        folderName="bills" // Pass folder name as prop
       />
 
       <PlacementDocsModal
@@ -121,6 +125,7 @@ function Submit() {
         saveToFirebase={saveToFirebase}
         setShowSuccessToast={setShowSuccessToast}
         setShowErrorToast={setShowErrorToast}
+        folderName="placement_docs" // Pass folder name as prop
       />
 
       {/* Toast Notifications */}

@@ -13,7 +13,8 @@ const PlacementDocsModal = ({
   onClose,
   saveToFirebase,
   setShowSuccessToast,
-  setShowErrorToast
+  setShowErrorToast,
+  folderName,
 }) => {
   const [files, setFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState([]);
@@ -68,16 +69,22 @@ const PlacementDocsModal = ({
       const file = filesToUpload[i];
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", UPLOAD_PRESET);  // Use the UPLOAD_PRESET variable
-      formData.append("cloud_name", CLOUD_NAME);        // Use the CLOUD_NAME variable
-
+      formData.append("upload_preset", UPLOAD_PRESET);
+      formData.append("cloud_name", CLOUD_NAME);
+  
       try {
         const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,  // Use CLOUD_NAME here as well
+          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
           { method: "POST", body: formData }
         );
         const data = await response.json();
-        saveToFirebase(data);  // Assuming saveToFirebase function is defined in the parent or inside this component
+  
+        // Check the response to make sure it contains the data you expect
+        console.log('Cloudinary Response:', data);
+  
+        // Save the image data, including width and height, to Firebase
+        saveToFirebase(data, folderName); // Save to the correct folder
+  
         setUploadProgress(prev => prev.map((p, idx) => idx === i ? 100 : p));
       } catch (error) {
         console.error("Upload failed:", error);
@@ -85,7 +92,7 @@ const PlacementDocsModal = ({
         setTimeout(() => setShowErrorToast(false), 3000);
       }
     }
-
+  
     setIsUploading(false);
     setShowSuccessToast(true);
     setTimeout(() => {
@@ -95,6 +102,7 @@ const PlacementDocsModal = ({
       onClose();
     }, 3000);
   };
+  
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-2">
@@ -177,7 +185,8 @@ PlacementDocsModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   saveToFirebase: PropTypes.func.isRequired,
   setShowSuccessToast: PropTypes.func.isRequired,
-  setShowErrorToast: PropTypes.func.isRequired
+  setShowErrorToast: PropTypes.func.isRequired,
+  folderName: PropTypes.string.isRequired // Add to propTypes
 };
 
 export default PlacementDocsModal;

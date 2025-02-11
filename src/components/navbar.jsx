@@ -1,32 +1,42 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FaHome, FaFileAlt, FaVideo, FaUserAlt } from 'react-icons/fa';
+import PropTypes from 'prop-types';
 
 const Navbar = ({ isAuthenticated }) => {
   const location = useLocation();
-  const [isReportClicked, setIsReportClicked] = useState(false); // State to track the click on report tab
+  const [isReportClicked, setIsReportClicked] = useState(false);
+  const [mediaText, setMediaText] = useState("Media");
 
+  useEffect(() => {
+    const selectedOption = sessionStorage.getItem("selectedOption");
+    if (selectedOption === "bills") {
+      setMediaText("Bills");
+    } else if (selectedOption === "placementDocs") {
+      setMediaText("Docs");
+    } else {
+      setMediaText("Media");
+    }
+  }, [location.pathname]);
+
+  const isMediaOrDocsActive = location.pathname === '/media' || location.pathname === '/docs';
   const isHome = location.pathname === '/' || location.pathname === '/home';
   const isSalesOrPlacement = location.pathname === '/sales' || location.pathname === '/placement';
   const isReportActive = isSalesOrPlacement;
-  const isNotificationActive = location.pathname === '/media';
   const isProfileActive = location.pathname === '/underconstruction';
-
   const isReportDisabled = !isSalesOrPlacement;
 
-  // Handle the click event on the Report tab
   const handleReportClick = () => {
     if (isReportDisabled) {
-      setIsReportClicked(true); // Set clicked state to true
+      setIsReportClicked(true);
       setTimeout(() => {
-        setIsReportClicked(false); // Reset back to false after 1 second
+        setIsReportClicked(false);
       }, 1000);
     }
   };
 
   return (
-    <div className="fixed font-inter  bottom-0 left-0 w-full bg-gray-800 text-white flex justify-around items-center z-50 shadow-lg">
-      {/* Home Tab */}
+    <div className="fixed font-inter bottom-0 left-0 w-full bg-gray-800 text-white flex justify-around items-center z-50 shadow-lg">
       <div className="text-center">
         <Link
           to="/"
@@ -37,11 +47,10 @@ const Navbar = ({ isAuthenticated }) => {
         </Link>
       </div>
 
-      {/* Report Tab */}
       <div className="relative text-center group">
         <Link
           to={isSalesOrPlacement ? "/report" : "#"}
-          onClick={handleReportClick} // Handle the click event
+          onClick={handleReportClick}
           className={`flex flex-col items-center text-sm px-4 py-2 rounded-full transition-colors duration-300
             ${isReportActive ? 'text-green-500' : isReportClicked ? 'text-red-500' : (isReportDisabled ? 'text-white' : 'text-white')}
             ${!isSalesOrPlacement ? 'pointer-events-none' : ''}`}
@@ -52,7 +61,6 @@ const Navbar = ({ isAuthenticated }) => {
           </span>
         </Link>
         
-        {/* Tooltip (Pop-up on hover) */}
         {isReportDisabled && (
           <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-700 text-white text-xs p-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
             Not Clickable
@@ -60,18 +68,20 @@ const Navbar = ({ isAuthenticated }) => {
         )}
       </div>
 
-      {/* Media Tab */}
       <div className="text-center">
         <Link
-          to={isAuthenticated ? "/media" : "/adminlogin"}
-          className={`flex flex-col items-center text-sm px-4 py-2 rounded-full transition-colors duration-300 ${isNotificationActive ? 'text-green-500' : 'text-white'}`}
+          to={isAuthenticated ? (mediaText === "Bills" ? "/media" : "/docs") : "/adminlogin"}
+          className={`flex flex-col items-center text-sm px-4 py-2 rounded-full transition-colors duration-300 ${
+            isMediaOrDocsActive ? 'text-green-500' : 'text-white'
+          }`}
         >
-          <FaVideo size={24} className={isNotificationActive ? 'text-green-500' : 'text-white'} />
-          <span className={isNotificationActive ? 'text-green-500' : 'text-white'}>Media</span>
+          <FaVideo size={24} className={isMediaOrDocsActive ? 'text-green-500' : 'text-white'} />
+          <span className={isMediaOrDocsActive ? 'text-green-500' : 'text-white'}>
+            {mediaText}
+          </span>
         </Link>
       </div>
 
-      {/* Profile Tab */}
       <div className="text-center">
         <Link
           to="/underconstruction"
@@ -83,6 +93,10 @@ const Navbar = ({ isAuthenticated }) => {
       </div>
     </div>
   );
+};
+
+Navbar.propTypes = {
+  isAuthenticated: PropTypes.bool.isRequired,
 };
 
 export default Navbar;

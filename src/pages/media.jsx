@@ -7,8 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { FaFileImage,  FaSyncAlt } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import FileDetailSidebar from "./FileDetailSidebar"; // Import the new component
-import StorageHeader from "./StorageHeader"; // Import the new StorageHeader component
+import FileDetailSidebar from "../components/FileDetailSidebar"; // Import the new component
+import StorageHeader from "../components/StorageHeader"; // Import the new StorageHeader component
 
 function Media() {
   const [files, setFiles] = useState([]);

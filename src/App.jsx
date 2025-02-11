@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { auth } from "./firebaseConfig"; // Import Firebase auth
 import "./App.css";
 import Home from "./components/home";
-import Sales from "./components/sales";
-import Placement from "./components/placement";
+import Sales from "./components/Sales/Page/sales";
+import Placement from "./components/Placement/Page/placement";
 import Navbar from './components/navbar';
 import Landing from './components/landing';
 import Login from "./components/login";
 import Forgetpassword from "./components/forgetpassword";
 import AdminLogin from "./components/adminLogin";
-import Media from "./components/media";
+import Media from "./pages/media";
 import Spent from "./components/spent";
 import UnderConstruction from "./components/underCont";
+import PlacementDocs from "./components/PlacementDocs";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -44,6 +45,7 @@ const App = () => {
           <Route path='/media' element={<Media />} />
           <Route path='/spent' element={<Spent />} />
           <Route path='/underconstruction' element={<UnderConstruction />} />
+          <Route path='/docs' element={<PlacementDocs />} />
           {/* Sales and Placement Routes - Protected */}
           <Route
             path="/sales"

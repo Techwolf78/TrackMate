@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebaseConfig"; // Firebase auth import
+import { auth } from "../../../firebaseConfig"; // Firebase auth import
 import { signOut } from "firebase/auth"; // Firebase sign-out method
 
 function PlacementForm() {

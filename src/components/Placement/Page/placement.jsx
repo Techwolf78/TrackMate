@@ -1,7 +1,7 @@
 // Sales.jsx
 import React from 'react';
-import PlacementForm from './placementform';  // Importing SalesForm component
-import PlacementFormSubmit from './placementformsubmit';  // Importing Submit component
+import PlacementForm from '../Components/placementform';  // Importing SalesForm component
+import PlacementFormSubmit from '../Components/placementformsubmit';  // Importing Submit component
 
 function Sales() {
   return (

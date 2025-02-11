@@ -2,14 +2,17 @@ import { useState, useEffect } from "react";
 import SalesUserDropdown from "./SalesUserDropdown";
 import SalesBackButton from "./SalesBackButton";
 import AffiliationSelect from "./AffiliationSelect"; // Import the new component
+import StateSelect from "./StateSelect"; // Import the StateSelect component
 
 function SalesForm() {
   const [formData, setFormData] = useState({
     collegeName: "",
     city: "",
-    clientName: "",
-    clientDesignation: "",
-    clientContact: "",
+    state: "",
+    pointOfContactName: "",
+    pointOfContactDesignation: "",
+    pointOfContactNumber: "",
+    pointOfContactEmail: "", 
     accreditation: "",
     otherAccreditation: "",
     affiliation: "",
@@ -24,6 +27,7 @@ function SalesForm() {
     totalContractValue: "",
     remarks: "",
   });
+  
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -67,9 +71,11 @@ function SalesForm() {
         visitCode: visitCode,
         collegeName: formData.collegeName,
         city: formData.city,
-        clientName: formData.clientName,
-        clientDesignation: formData.clientDesignation,
-        clientContact: formData.clientContact,
+        state: formData.state,
+        pointOfContactName: formData.pointOfContactName,
+        pointOfContactDesignation: formData.pointOfContactDesignation,
+        pointOfContactNumber: formData.pointOfContactNumber,
+        pointOfContactEmail: formData.pointOfContactEmail, // Add this line
         accreditation:
           formData.accreditation === "Other"
             ? formData.otherAccreditation
@@ -88,11 +94,12 @@ function SalesForm() {
         totalContractValue: formData.totalContractValue,
         remarks: formData.remarks,
       };
+      
 
       try {
         // Remove unused response variable
         await fetch(
-          "https://script.google.com/macros/s/AKfycbzlRBPxthm_Mj6wjblJI61Yx9C0Urw3VnzmHjHjJJSjSq0JhFPTg8S2nf-SU94CR0I/exec",
+          "https://script.google.com/macros/s/AKfycbzv6ktVVEupR85jMYfIqs2iFQs0bxxpB80NE2iELUQNnJRIs5noxJYoZwO-OdBjgp8/exec",
           {
             method: "POST",
             mode: "no-cors",
@@ -115,9 +122,11 @@ function SalesForm() {
           setFormData({
             collegeName: "",
             city: "",
-            clientName: "",
-            clientDesignation: "", // Reset this
-            clientContact: "", // Reset this
+            state: "",
+            pointOfContactName: "",
+            pointOfContactDesignation: "",
+            pointOfContactNumber: "",
+            pointOfContactEmail: "", // Add this line
             accreditation: "",
             otherAccreditation: "",
             affiliation: "",
@@ -131,7 +140,7 @@ function SalesForm() {
             perStudentRate: "",
             totalContractValue: "",
             remarks: "",
-          });
+          });          
           sessionStorage.removeItem("salesVisitCode");
           setVisitCode(generateVisitCode());
         }, 2000);
@@ -177,42 +186,54 @@ function SalesForm() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium">Client Name</label>
-            <input
-              type="text"
-              name="clientName"
-              value={formData.clientName}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
+                  {/* State Select Component */}
+                  <StateSelect state={formData.state} handleChange={handleChange} />
 
-          {/* Add Client Designation Field */}
           <div>
-            <label className="block text-sm font-medium">
-              Client Designation
-            </label>
-            <input
-              type="text"
-              name="clientDesignation"
-              value={formData.clientDesignation}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
+  <label className="block text-sm font-medium">Point of Contact Name</label> 
+  <input
+    type="text"
+    name="pointOfContactName" 
+    value={formData.pointOfContactName} 
+    onChange={handleChange}
+    className={inputClass}
+  />
+</div>
 
-          {/* Add Client Contact Field */}
-          <div>
-            <label className="block text-sm font-medium">Client Contact</label>
-            <input
-              type="text"
-              name="clientContact"
-              value={formData.clientContact}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
+<div>
+  <label className="block text-sm font-medium">Point of Contact Email</label>
+  <input
+    type="email"
+    name="pointOfContactEmail"
+    value={formData.pointOfContactEmail}
+    onChange={handleChange}
+    className={inputClass}
+  />
+</div>
+
+{/* Change Client Designation */}
+<div>
+  <label className="block text-sm font-medium">Point of Contact Designation</label> 
+  <input
+    type="text"
+    name="pointOfContactDesignation" 
+    value={formData.pointOfContactDesignation} 
+    onChange={handleChange}
+    className={inputClass}
+  />
+</div>
+
+{/* Change Client Contact */}
+<div>
+  <label className="block text-sm font-medium">Point of Contact Number</label> 
+  <input
+    type="text"
+    name="pointOfContactNumber" 
+    value={formData.pointOfContactNumber} 
+    onChange={handleChange}
+    className={inputClass}
+  />
+</div>
 
           <div>
             <label className="block text-sm font-medium">Accreditation</label>

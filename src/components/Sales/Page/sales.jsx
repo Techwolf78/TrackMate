@@ -1,6 +1,6 @@
 // Sales.jsx
-import SalesForm from './salesform';  // Importing SalesForm component
-import Submit from './submit';        // Importing Submit component
+import SalesForm from '../Components/salesform';  // Importing SalesForm component
+import Submit from '../Components/submit';        // Importing Submit component
 
 function Sales() {
   return (

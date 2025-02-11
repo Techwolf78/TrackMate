@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { auth, signInWithEmailAndPassword } from "../firebaseConfig";
+import { auth, signInWithEmailAndPassword } from "../../firebaseConfig";
 import { useNavigate } from "react-router-dom"; // For navigation
 
 const Login = () => {

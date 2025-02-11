@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { db } from "../../../firebaseConfig";
 import { ref, set } from "firebase/database";
-import SpentModal from "../../SpentModal";
-import BillsModal from "../../BillsModal";
-import PlacementDocsModal from "../../PlacementDocsModal"; // Import the new modal
+import SpentModal from "./SpentModal";
+import BillsModal from "./BillsModal";
+import PlacementDocsModal from "./PlacementDocsModal"; // Import the new modal
 
 function Submit() {
   const [isModalOpen, setIsModalOpen] = useState(false);

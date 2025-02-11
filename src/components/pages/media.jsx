@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { getDatabase, ref, get, remove } from "firebase/database";
-import { db } from "../firebaseConfig"; // Use named import instead of default
+import { db } from "../../firebaseConfig"; // Use named import instead of default
 import debounce from "lodash.debounce";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { FaFileImage,  FaSyncAlt } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import FileDetailSidebar from "../components/FileDetailSidebar"; // Import the new component
-import StorageHeader from "../components/StorageHeader"; // Import the new StorageHeader component
+import FileDetailSidebar from "../FileDetailSidebar"; // Import the new component
+import StorageHeader from "../Media/StorageHeader"; // Import the new StorageHeader component
 
 function Media() {
   const [files, setFiles] = useState([]);

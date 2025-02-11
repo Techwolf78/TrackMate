@@ -1,22 +1,22 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { getDatabase, ref, get, remove } from "firebase/database";
-import { db } from "../firebaseConfig";
+import { ref, get, remove } from "firebase/database";
+import { db } from "../../firebaseConfig";
 import debounce from "lodash.debounce";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { FaFileImage, FaSyncAlt } from "react-icons/fa";
+import { FaFileImage } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import FileDetailSidebar from "./FileDetailSidebar";
-import PlacementHeader from "./PlacementHeader";
-import DateFilter from "./DateFilter";
+import FileDetailSidebar from "../FileDetailSidebar";
+import PlacementHeader from "../Placement Docs/PlacementHeader";
+import DateFilter from "../Placement Docs/DateFilter";
 
 function PlacementDocs() {
   const [files, setFiles] = useState([]);
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,7 +65,10 @@ function PlacementDocs() {
       const snapshot = await get(filesRef);
       if (snapshot.exists()) {
         const data = snapshot.val();
-        const fileArray = Object.values(data).sort(
+        const fileArray = Object.entries(data).map(([key, value]) => ({
+          ...value,
+          firebaseKey: key, // Store the Firebase key
+        })).sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at)
         );
         setFiles(fileArray);
@@ -75,6 +78,7 @@ function PlacementDocs() {
         setFilteredFiles([]);
       }
     } catch (err) {
+      console.error("Error fetching files:", err);
       setError("Failed to load files.");
     } finally {
       setIsLoading(false);
@@ -262,13 +266,13 @@ function PlacementDocs() {
     </div>
   );
 
-  const handleDelete = async (publicId) => {
+  const handleDelete = async (firebaseKey) => {
     try {
-      const fileRef = ref(db, `placement_docs/${publicId}`);
+      const fileRef = ref(db, `placement_docs/${firebaseKey}`);
       await remove(fileRef);
-      setFiles(files.filter((file) => file.public_id !== publicId));
+      setFiles(files.filter((file) => file.firebaseKey !== firebaseKey));
       setFilteredFiles(
-        filteredFiles.filter((file) => file.public_id !== publicId)
+        filteredFiles.filter((file) => file.firebaseKey !== firebaseKey)
       );
       toast.success("File deleted successfully!");
     } catch (error) {
@@ -280,10 +284,10 @@ function PlacementDocs() {
     setFileToDelete(file);
     setIsDeleteModalOpen(true);
   };
-
+  
   const handleConfirmDelete = async () => {
     if (!fileToDelete) return;
-    await handleDelete(fileToDelete.public_id);
+    await handleDelete(fileToDelete.firebaseKey); // Use fileToDelete.firebaseKey
     setIsDeleteModalOpen(false);
     setFileToDelete(null);
   };
@@ -518,11 +522,14 @@ function PlacementDocs() {
                 Cancel
               </button>
               <button
-                onClick={handleConfirmDelete}
-                className="text-white bg-red-500 py-2 px-4 rounded-lg hover:bg-red-600"
-              >
-                Delete
-              </button>
+  onClick={(e) => {
+    e.stopPropagation();
+    handleConfirmDelete(); // Call handleConfirmDelete directly
+  }}
+  className="text-red-500 hover:underline ml-4"
+>
+  Delete
+</button>
             </div>
           </div>
         </div>

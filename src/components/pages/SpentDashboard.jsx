@@ -5,6 +5,7 @@ import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Lege
 import { ref, onValue } from 'firebase/database';
 import { db } from '../../firebaseConfig';
 import { Link } from 'react-router-dom'; // Add Link for routing
+import { format } from 'date-fns'; // Importing date-fns to format date
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -87,23 +88,30 @@ const Dashboard = () => {
     },
     plugins: {
       legend: {
-        display: true, // Keep the legend visible
+        display: true,
         labels: {
-          boxWidth: 0, // Removes the color box next to the labels
+          boxWidth: 0,
           font: {
-            size: 14, // Change font size if you want
+            size: 14,
           },
         },
       },
     },
   };
-  
 
   const getValueOrZero = (value) => {
-    if (value === null || value === undefined) return '0'; // Return '0' if value is null or undefined
-    if (typeof value === 'string') return value || '0'; // If value is a string (e.g., college name), return it
+    if (value === null || value === undefined) return '0';
+    if (typeof value === 'string') return value || '0';
     const numericValue = parseFloat(value);
-    return isNaN(numericValue) ? '0' : numericValue.toFixed(2); // Format number to 2 decimal places or return '0' if NaN
+    return isNaN(numericValue) ? '0' : numericValue.toFixed(2);
+  };
+
+  // Function to format the timestamp to a human-readable date (dd/MM/yyyy)
+  const formatDate = (timestamp) => {
+    if (!timestamp || isNaN(timestamp)) {
+      return 'No date available'; // Show fallback message if date is invalid
+    }
+    return format(new Date(timestamp), 'dd/MM/yyyy'); // Convert timestamp to a readable date format
   };
 
   return (
@@ -147,8 +155,7 @@ const Dashboard = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider bg-blue-200">Stay</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider bg-blue-200">Toll</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider bg-blue-200">College</th>
-                {/* Temporarily commented out the Additional Colleges column */}
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider bg-blue-200">Additional Colleges</th> */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider bg-blue-200">Date</th>
               </tr>
             </thead>
             <tbody>
@@ -163,17 +170,12 @@ const Dashboard = () => {
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{getValueOrZero(entry.stay)}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{getValueOrZero(entry.toll)}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{entry.college || 'No College'}</td>
-                    {/* Temporarily commented out the Additional Colleges column data */}
-                    {/* <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      {entry.additionalColleges && entry.additionalColleges.length > 0
-                        ? entry.additionalColleges.join(', ') // Join multiple colleges with a comma
-                        : 'No additional colleges'}
-                    </td> */}
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatDate(entry.date)}</td> {/* Show formatted date */}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-700">No records found</td>
+                  <td colSpan="9" className="px-6 py-4 text-center text-sm text-gray-700">No records found</td>
                 </tr>
               )}
             </tbody>

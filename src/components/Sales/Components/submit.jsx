@@ -84,7 +84,7 @@ function Submit() {
       <div className="flex flex-col md:flex-row justify-center font-inter items-center bg-white  pt-2 ">
         <div className="flex space-x-0 md:space-x-12 flex-col md:flex-row max-w-2xl">
           <button
-            className="bg-white text-blue-500 border-2 border-blue-500 px-6 md:px-10 py-2 w-full hover:bg-blue-500 hover:text-white hover:border-blue-600 mb-4 md:mb-0"
+            className="bg-white text-blue-500 border-2 border-blue-500 px-6 md:px-6 py-2 w-full hover:bg-blue-500 hover:text-white hover:border-blue-600 mb-4 md:mb-0"
             onClick={() => setIsModalOpen(true)}
           >
             Spent

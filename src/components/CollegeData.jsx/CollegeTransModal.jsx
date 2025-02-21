@@ -1,7 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { format } from 'date-fns'; // Importing date-fns to format date
 
 const CollegeTransModal = ({ selectedCollege, closeModal }) => {
+  // Function to format the timestamp to a human-readable date (dd/MM/yyyy)
+  const formatDate = (timestamp) => {
+    // If no timestamp or it's invalid, return a fallback message
+    if (!timestamp || isNaN(timestamp)) {
+      return 'No date available'; // Fallback message
+    }
+    return format(new Date(timestamp), 'dd/MM/yyyy'); // Convert timestamp to a readable date format
+  };
+
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full mx-8 md:mx-16 max-w-7xl">
@@ -19,6 +29,7 @@ const CollegeTransModal = ({ selectedCollege, closeModal }) => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fuel</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Stay</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Toll</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Date</th> {/* Added Date column */}
               </tr>
             </thead>
             <tbody>
@@ -42,6 +53,7 @@ const CollegeTransModal = ({ selectedCollege, closeModal }) => {
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{fuel.toFixed(2)}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{stay.toFixed(2)}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{toll.toFixed(2)}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatDate(transaction.date)}</td> {/* Show formatted date */}
                   </tr>
                 );
               })}
@@ -68,10 +80,11 @@ CollegeTransModal.propTypes = {
       PropTypes.shape({
         allocatedAmount: PropTypes.number.isRequired,
         spentAmount: PropTypes.number.isRequired,
-        food: PropTypes.number.isRequired, // Added food prop type
-        fuel: PropTypes.number.isRequired, // Added fuel prop type
-        stay: PropTypes.number.isRequired, // Added stay prop type
-        toll: PropTypes.number.isRequired, // Added toll prop type
+        food: PropTypes.number.isRequired,
+        fuel: PropTypes.number.isRequired,
+        stay: PropTypes.number.isRequired,
+        toll: PropTypes.number.isRequired,
+        date: PropTypes.number, // Date is optional and might be missing
       })
     ).isRequired,
   }).isRequired,

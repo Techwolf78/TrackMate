@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ref, set } from "firebase/database";
 import { db } from "../../../firebaseConfig";
 import CollegeList from "./CollegeList"; // Import the CollegeList component
+import { format } from "date-fns"; // Using date-fns for date formatting
 
 const SpentModal = ({ isOpen, onClose, handleSave }) => {
   const [allocatedAmount, setAllocatedAmount] = useState("");
@@ -15,6 +16,7 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
   const [fuel, setFuel] = useState("");
   const [stay, setStay] = useState("");
   const [toll, setToll] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date()); // Default to today's date
 
   if (!isOpen) return null;
 
@@ -34,21 +36,30 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
   };
 
   const handleFormSubmit = () => {
+    // If no date is selected, use today's date
+    const dateToSave = selectedDate.getTime(); // Convert date to timestamp
+
+    // Basic validation before submitting the form
+    if (!allocatedAmount || !spentAmount || !visitType || !college) {
+      alert("Please fill in all the required fields.");
+      return;
+    }
+
     // Calculate the total number of colleges (including the main college and additional colleges)
     const totalColleges =
       additionalColleges.length +
       (college === "Other" ? 1 : 0) +
       (college !== "" && college !== "Other" ? 1 : 0);
-  
+
     // Calculate the split amounts for food, fuel, stay, and toll
     const foodSplit = (parseFloat(food) || 0) / totalColleges;
     const fuelSplit = (parseFloat(fuel) || 0) / totalColleges;
     const staySplit = (parseFloat(stay) || 0) / totalColleges;
     const tollSplit = (parseFloat(toll) || 0) / totalColleges;
-  
+
     // Create an array to hold the spent data for each college
     const spentDataArray = [];
-  
+
     // Add the main college (or selected college)
     const mainCollege = college === "Other" ? otherCollegeName : college;
     if (college !== "") {  // Ensure the selected college is added
@@ -61,9 +72,10 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
         fuel: fuelSplit,
         stay: staySplit,
         toll: tollSplit,
+        date: dateToSave, // Save the selected date as timestamp
       });
     }
-  
+
     // Add the additional colleges
     additionalColleges.forEach((collegeName) => {
       spentDataArray.push({
@@ -75,9 +87,10 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
         fuel: fuelSplit,
         stay: staySplit,
         toll: tollSplit,
+        date: dateToSave, // Save the selected date as timestamp
       });
     });
-  
+
     // Save each spent data record to the database
     spentDataArray.forEach((spentData) => {
       const newSpentRef = ref(db, "sales_spent/" + Date.now());
@@ -90,7 +103,7 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
           console.error("Error saving data:", error);
         });
     });
-  
+
     // Reset the form fields after submission
     setAllocatedAmount("");
     setSpentAmount("");
@@ -103,27 +116,31 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
     setStay("");
     setToll("");
   };
-  
+
+  // Format the date to DD/MM/YYYY using date-fns
+  const formatDate = (date) => {
+    return format(date, "dd/MM/yyyy"); // Formats it as DD/MM/YYYY (e.g., 22/02/2025)
+  };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-2 mb-12">
-      <div className="bg-white p-6 rounded-lg max-w-lg w-full relative max-h-[90vh] overflow-y-auto shadow-lg">
+    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-1 mb-8">
+      <div className="bg-white p-4 rounded-lg max-w-lg w-full relative max-h-[90vh] overflow-y-auto shadow-lg">
         <div
           onClick={onClose}
-          className="absolute top-2 right-2 w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center cursor-pointer"
+          className="absolute top-1 right-1 w-6 h-6 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center cursor-pointer"
         >
-          <span className="font-bold text-xl">×</span>
+          <span className="font-bold text-lg">×</span>
         </div>
 
-        <h3 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-          Spent
+        <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+          Spent - {formatDate(selectedDate)} {/* Display the current date */}
         </h3>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <select
             value={visitType}
             onChange={(e) => setVisitType(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-sm"
           >
             <option value="">Visit Type</option>
             <option value="Single Visit">Single Visit</option>
@@ -133,7 +150,7 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
           <select
             value={college}
             onChange={(e) => setCollege(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-sm"
           >
             <option value="">Select College</option>
             <CollegeList /> {/* Use CollegeList here */}
@@ -144,24 +161,24 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
               type="text"
               value={otherCollegeName}
               onChange={(e) => setOtherCollegeName(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-sm"
               placeholder="Enter Other College Name"
             />
           )}
 
           {visitType === "Multiple Visit" &&
             additionalColleges.map((college, index) => (
-              <div key={index} className="flex items-center space-x-2">
+              <div key={index} className="flex items-center space-x-1">
                 <input
                   type="text"
                   value={college}
                   onChange={(e) => handleCollegeChange(index, e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-sm"
                   placeholder={`College ${index + 2}`}
                 />
                 <button
                   onClick={() => handleDeleteCollege(index)}
-                  className="text-red-500 hover:text-red-700 transition"
+                  className="text-red-500 hover:text-red-700 transition text-sm"
                 >
                   ✖
                 </button>
@@ -171,7 +188,7 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
           {visitType === "Multiple Visit" && (
             <button
               onClick={handleAddCollege}
-              className="w-full p-3 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition"
+              className="w-full p-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition text-sm"
             >
               Add College
             </button>
@@ -181,7 +198,7 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
             type="number"
             value={allocatedAmount}
             onChange={(e) => setAllocatedAmount(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-sm"
             placeholder="Allocated Amount"
           />
 
@@ -189,7 +206,7 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
             type="number"
             value={spentAmount}
             onChange={(e) => setSpentAmount(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-sm"
             placeholder="Spent Amount"
           />
 
@@ -197,7 +214,7 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
             type="number"
             value={food}
             onChange={(e) => setFood(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-sm"
             placeholder="Food Amount"
           />
 
@@ -205,7 +222,7 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
             type="number"
             value={fuel}
             onChange={(e) => setFuel(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-sm"
             placeholder="Fuel Amount"
           />
 
@@ -213,7 +230,7 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
             type="number"
             value={stay}
             onChange={(e) => setStay(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-sm"
             placeholder="Stay Amount"
           />
 
@@ -221,20 +238,20 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
             type="number"
             value={toll}
             onChange={(e) => setToll(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-sm"
             placeholder="Toll Amount"
           />
         </div>
 
-        <div className="mt-6 flex justify-between">
+        <div className="mt-4 flex justify-between">
           <button
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition"
+            className="bg-gray-300 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-400 transition text-sm"
             onClick={onClose}
           >
             Cancel
           </button>
           <button
-            className="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600 transition"
+            className="bg-indigo-500 text-white px-3 py-1 rounded-md hover:bg-indigo-600 transition text-sm"
             onClick={handleFormSubmit}
           >
             Save

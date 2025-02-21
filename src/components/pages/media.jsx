@@ -61,7 +61,7 @@ function PlacementDocs() {
   const fetchFiles = async () => {
     try {
       setIsLoading(true);
-      const filesRef = ref(db, "uploaded_files");
+      const filesRef = ref(db, "bills");
       const snapshot = await get(filesRef);
       if (snapshot.exists()) {
         const data = snapshot.val();
@@ -268,7 +268,7 @@ function PlacementDocs() {
 
   const handleDelete = async (firebaseKey) => {
     try {
-      const fileRef = ref(db, `uploaded_files/${firebaseKey}`);
+      const fileRef = ref(db, `bills/${firebaseKey}`);
       await remove(fileRef);
       setFiles(files.filter((file) => file.firebaseKey !== firebaseKey));
       setFilteredFiles(

@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useState } from 'react';
+import imageCompression from 'browser-image-compression'; // Import the compression library
 
 const formatFileSize = (bytes) => {
   const sizes = ['bytes', 'KB', 'MB'];
@@ -20,28 +21,41 @@ const BillsModal = ({
   const [uploadProgress, setUploadProgress] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Cloudinary Configuration
   const CLOUD_NAME = "dcjmaapvi";
   const UPLOAD_PRESET = "tracker";
 
   if (!isOpen) return null;
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const selectedFiles = Array.from(e.target.files);
     const validTypes = ["image/png", "image/jpeg", "image/jpg"];
     const maxFileSize = 10 * 1024 * 1024;
 
-    const newFiles = selectedFiles.filter((file) => {
+    const newFiles = [];
+
+    for (let file of selectedFiles) {
       if (!validTypes.includes(file.type)) {
         alert("Invalid file type. Only image files (JPG, PNG, JPEG) are allowed.");
-        return false;
+        continue;
       }
       if (file.size > maxFileSize) {
-        alert(`${file.name} is too large! Please upload a file smaller than 10MB.`);
-        return false;
+        // Compress the image if it's too large
+        try {
+          const compressedFile = await imageCompression(file, {
+            maxSizeMB: 10, // Set max size to 10MB
+            maxWidthOrHeight: 1024, // Resize the image to fit within this width or height
+            useWebWorker: true
+          });
+          newFiles.push(compressedFile);
+        } catch (error) {
+          alert(`${file.name} couldn't be compressed properly!`);
+          console.error(error);
+        }
+      } else {
+        // If it's already under the 10MB limit, just add it as is
+        newFiles.push(file);
       }
-      return true;
-    });
+    }
 
     if (newFiles.length > 0) {
       setFiles([...files, ...newFiles]);
@@ -56,7 +70,7 @@ const BillsModal = ({
 
   const handleUploadClick = () => {
     if (files.some(file => file.size > 10 * 1024 * 1024)) {
-      alert("Please select an image file less than 10MB.");
+      alert("Please select an image file smaller than 10MB.");
       return;
     }
 
@@ -79,11 +93,14 @@ const BillsModal = ({
         );
         const data = await response.json();
   
-        // Check the response to make sure it contains the data you expect
         console.log('Cloudinary Response:', data);
   
-        // Save the image data, including width and height, to Firebase
-        saveToFirebase(data, folderName); // Save to the correct folder
+        const additionalData = {
+          ...data,
+          dept: "sales" 
+        };
+  
+        saveToFirebase(additionalData, folderName);
   
         setUploadProgress(prev => prev.map((p, idx) => idx === i ? 100 : p));
       } catch (error) {
@@ -102,8 +119,6 @@ const BillsModal = ({
       onClose();
     }, 3000);
   };
-  
-  
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-2">
@@ -187,7 +202,7 @@ BillsModal.propTypes = {
   saveToFirebase: PropTypes.func.isRequired,
   setShowSuccessToast: PropTypes.func.isRequired,
   setShowErrorToast: PropTypes.func.isRequired,
-  folderName: PropTypes.string.isRequired // Add to propTypes
+  folderName: PropTypes.string.isRequired
 };
 
 export default BillsModal;

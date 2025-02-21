@@ -11,9 +11,10 @@ import Login from "./components/Auth/login";
 import Forgetpassword from "./components/forgetpassword";
 import AdminLogin from "./components/Auth/adminLogin";
 import Media from "./components/pages/media";
-import Spent from "./components/pages/spent";
+import Spent from "./components/pages/SpentDashboard";
 import UnderConstruction from "./components/pages/underCont";
 import PlacementDocs from "./components/pages/PlacementDocs";
+import CollegeData from "./components/pages/CollegeData";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -44,6 +45,7 @@ const App = () => {
           <Route path='/adminlogin' element={<AdminLogin />} />
           <Route path='/media' element={<Media />} />
           <Route path='/spent' element={<Spent />} />
+          <Route path="/clddata" element={<CollegeData />} />
           <Route path='/underconstruction' element={<UnderConstruction />} />
           <Route path='/docs' element={<PlacementDocs />} />
           {/* Sales and Placement Routes - Protected */}

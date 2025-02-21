@@ -1,315 +1,427 @@
-import React, { useEffect, useState, useRef } from "react";
-import { getDatabase, ref, get, remove } from "firebase/database";
-import { db } from "../../firebaseConfig"; // Use named import instead of default
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { ref, get, remove } from "firebase/database";
+import { db } from "../../firebaseConfig";
 import debounce from "lodash.debounce";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { FaFileImage,  FaSyncAlt } from "react-icons/fa";
+import { FaFileImage } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import FileDetailSidebar from "../FileDetailSidebar"; // Import the new component
-import StorageHeader from "../Media/StorageHeader"; // Import the new StorageHeader component
+import FileDetailSidebar from "../FileDetailSidebar";
+import StorageHeader from "../Media/StorageHeader";
+import DateFilter from "../Placement Docs/DateFilter";
 
-function Media() {
+function PlacementDocs() {
   const [files, setFiles] = useState([]);
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState(null);
-  const [page, setPage] = useState(1); // Track the current page
-  const [perPage] = useState(15); // Number of items to load at once
-// Replace existing hasMoreFiles calculation
-const hasMoreFiles = filteredFiles.length < files.length;
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(15);
+  const searchInputRef = useRef(null);
+  const hasMoreFiles = filteredFiles.length < files.length;
+  const [dateFilter, setDateFilter] = useState({ startDate: "", endDate: "" });
+
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
-  // Close dropdown if clicked outside
+
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        !searchInputRef.current.contains(event.target)
+      ) {
         setIsDropdownOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
 
+    // Add the event listener when the dropdown is open
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    // Cleanup the event listener on component unmount or when dropdown is closed
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
+  }, [isDropdownOpen]);
+
+  const fetchFiles = async () => {
+    try {
+      setIsLoading(true);
+      const filesRef = ref(db, "uploaded_files");
+      const snapshot = await get(filesRef);
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const fileArray = Object.entries(data).map(([key, value]) => ({
+          ...value,
+          firebaseKey: key, // Store the Firebase key
+        })).sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        );
+        setFiles(fileArray);
+        applyFilters(fileArray); // Pass files to applyFilters
+      } else {
+        setFiles([]);
+        setFilteredFiles([]);
+      }
+    } catch (err) {
+      console.error("Error fetching files:", err);
+      setError("Failed to load files.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFiles();
   }, []);
 
- // Modified fetchFiles function (load all data once)
-const fetchFiles = async () => {
-  try {
-    setIsLoading(true);
-    const filesRef = ref(db, "uploaded_files");
-    const snapshot = await get(filesRef);
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      const fileArray = Object.values(data).sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      );
-      setFiles(fileArray);
-      setFilteredFiles(fileArray.slice(0, perPage * page));
-    } else {
-      setFiles([]);
-      setFilteredFiles([]);
+  const applyFilters = useCallback(
+    (filesToFilter = files) => {
+      let filtered = [...filesToFilter];
+
+      // Apply date filter
+      if (dateFilter.startDate) {
+        filtered = filtered.filter(
+          (file) => new Date(file.created_at) >= new Date(dateFilter.startDate)
+        );
+      }
+      if (dateFilter.endDate) {
+        filtered = filtered.filter(
+          (file) => new Date(file.created_at) <= new Date(dateFilter.endDate)
+        );
+      }
+
+      // Apply search filter
+      if (searchQuery) {
+        const lowerQuery = searchQuery.toLowerCase();
+        filtered = filtered.filter((file) =>
+          file.original_filename.toLowerCase().includes(lowerQuery)
+        );
+      }
+
+      setFilteredFiles(filtered.slice(0, perPage * page));
+    },
+    [dateFilter, searchQuery, files, page, perPage]
+  );
+
+  useEffect(() => {
+    if (files.length > 0) {
+      applyFilters(files);
     }
-  } catch (err) {
-    setError("Failed to load files.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  }, [files, applyFilters]);
+
+  const handleDateFilterChange = (filter) => {
+    setDateFilter(filter);
+    setPage(1);
+  };
 
   const handleLogout = async () => {
     try {
       const auth = getAuth();
       await signOut(auth);
-      console.log("User signed out");
       toast.success("Logged out successfully");
-
-      // Redirect to the login page after logout
-      navigate("/adminlogin"); // Replace "/login" with your login route if it's different
+      navigate("/adminlogin");
     } catch (error) {
-      console.error("Error signing out:", error);
       toast.error("Error logging out. Please try again.");
     }
   };
 
-// Updated handleLoadMore
-const handleLoadMore = () => {
-  setPage(prev => {
-    const newPage = prev + 1;
-    setFilteredFiles(files.slice(0, perPage * newPage));
-    return newPage;
-  });
-};
-
-
-
-  useEffect(() => {
-    fetchFiles(page); // Fetch the files for the new page when the page changes
-  }, [page]);
+  const handleLoadMore = () => {
+    console.log("Has More Files:", hasMoreFiles); // Debugging to check if this is the problem
+    if (!hasMoreFiles) {
+      toast.success("No more files to load.");
+      return;
+    }
+    setPage((prev) => {
+      const newPage = prev + 1;
+      applyFilters(); // Reapply filters for the next page
+      return newPage;
+    });
+  };
 
   useEffect(() => {
     const storedEmail = localStorage.getItem("userEmail");
-    if (storedEmail) {
-      // Extract only the part before @ symbol
-      const emailPrefix = storedEmail.split("@")[0]; // Split the email and take the first part
-      setEmail(emailPrefix); // Set the state with the email prefix
-    } else {
-      console.log("No email found in localStorage");
-    }
+    if (storedEmail) setEmail(storedEmail.split("@")[0]);
   }, []);
 
   const formatToMonthDayYear = (date) => {
     if (!date) return "";
     const d = new Date(date);
-    if (isNaN(d)) return "";
-    const options = { year: "numeric", month: "short", day: "numeric" };
-    return d.toLocaleDateString("en-US", options);
+    return isNaN(d)
+      ? ""
+      : d.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
   };
 
-// Updated filter function
-const filterFiles = (query) => {
-  const filtered = files.filter(file => 
-    file.original_filename.toLowerCase().includes(query.toLowerCase())
-  );
-  setFilteredFiles(filtered.slice(0, perPage * page));
-};
+  const handleSearchChange = debounce(() => {
+    setPage(1);
+  }, 300);
 
-// Update useEffect for search
-useEffect(() => {
-  filterFiles(searchQuery);
-}, [searchQuery]);
+  const handleInputChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
 
-  const handleSearchChange = debounce((e) => {
-    setSearchQuery(e.target.value);
-    filterFiles(e.target.value);
-  }, 500); // Adjust debounce delay as needed
+    // Generate search suggestions
+    const lowerQuery = query.toLowerCase();
+    const suggestions = files
+      .filter((file) =>
+        file.original_filename.toLowerCase().includes(lowerQuery)
+      )
+      .map((file) => file.original_filename);
+    setSearchSuggestions([...new Set(suggestions)]);
+
+    handleSearchChange();
+  };
+
+  const handleInputClick = (e) => {
+    e.stopPropagation(); // Prevent click from propagating to the document
+    setIsDropdownOpen(true);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIndex((prev) =>
+        Math.min(prev + 1, searchSuggestions.length - 1)
+      );
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIndex((prev) => Math.max(prev - 1, -1));
+    } else if (e.key === "Enter" && highlightedIndex >= 0) {
+      e.preventDefault();
+      const selectedSuggestion = searchSuggestions[highlightedIndex];
+      setSearchQuery(selectedSuggestion);
+      searchInputRef.current.blur();
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion);
+    setPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchSuggestions([]);
+    setPage(1);
+  };
+
+  const highlightMatch = (text, query) => {
+    if (!query) return text;
+    const regex = new RegExp(`(${query})`, "gi");
+    return text.split(regex).map((part, i) =>
+      part.toLowerCase() === query.toLowerCase() ? (
+        <span key={i} className="bg-yellow-200">
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  };
 
   const handleDownload = async (fileUrl, fileName) => {
     try {
       const response = await fetch(fileUrl);
-      if (!response.ok) {
-        throw new Error("Failed to fetch the file");
-      }
       const blob = await response.blob();
       const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.href = url;
+      link.href = URL.createObjectURL(blob);
       link.download = fileName;
-      link.style.display = "none";
-      document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading the file:", error);
+      console.error("Download error:", error);
     }
   };
-  const handleFileClick = (file) => {
-    console.log("File clicked:", file); // Log the file to check if it's correct
-    setSelectedFile(file);
-  };
-  useEffect(() => {
-    console.log("selectedFile updated:", selectedFile); // Log to track selectedFile state
-  }, [selectedFile]);
-  const handleCloseSidebar = () => {
-    setSelectedFile(null);
-  };
+
+  const handleFileClick = (file) => setSelectedFile(file);
+  const handleCloseSidebar = () => setSelectedFile(null);
+
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return `${bytes} bytes`;
     const kb = bytes / 1024;
     if (kb < 1024) return `${kb.toFixed(2)} KB`;
-    const mb = kb / 1024;
-    return `${mb.toFixed(2)} MB`;
+    return `${(kb / 1024).toFixed(2)} MB`;
   };
-  const getFileTypeIcon = (fileFormat) => {
-    let icon = <FaFileImage />;
-    let bgColor = "bg-cyan-400";
-    return (
-      <div className={`p-2 rounded-full ${bgColor} inline-block`}>{icon}</div>
-    );
-  };
-  const sortedFiles = [...files].sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+
+  const getFileTypeIcon = (fileFormat) => (
+    <div className="p-2 rounded-full bg-cyan-400 inline-block">
+      <FaFileImage />
+    </div>
   );
-// Fixed reset function
-const handleResetFilters = () => {
-  setSearchQuery("");
-  setPage(1);
-  setFilteredFiles(files.slice(0, perPage));
-};
-// Update useEffect for initial load
-useEffect(() => {
-  fetchFiles();
-}, []); // Empty dependency array
-  const handleDelete = async (publicId) => {
+
+  const handleDelete = async (firebaseKey) => {
     try {
-      console.log("Deleting file with public_id: ", publicId); // Check the ID
-      const fileRef = ref(db, `uploaded_files/${publicId}`);
+      const fileRef = ref(db, `uploaded_files/${firebaseKey}`);
       await remove(fileRef);
-      setFiles(files.filter((file) => file.public_id !== publicId));
+      setFiles(files.filter((file) => file.firebaseKey !== firebaseKey));
       setFilteredFiles(
-        filteredFiles.filter((file) => file.public_id !== publicId)
+        filteredFiles.filter((file) => file.firebaseKey !== firebaseKey)
       );
       toast.success("File deleted successfully!");
     } catch (error) {
-      console.error("Error deleting the file:", error);
-      toast.error("Error deleting the file. Please try again later.");
+      toast.error("Error deleting file. Please try again.");
     }
   };
+
   const handleDeleteClick = (file) => {
     setFileToDelete(file);
-    setIsDeleteModalOpen(true); // Show the confirmation modal
+    setIsDeleteModalOpen(true);
   };
+  
   const handleConfirmDelete = async () => {
     if (!fileToDelete) return;
-    try {
-      // Use public_id for deletion
-      await handleDelete(fileToDelete.public_id); // Pass public_id
-      setIsDeleteModalOpen(false);
-      setFileToDelete(null);
-    } catch (error) {
-      console.error("Error deleting the file:", error);
-      alert("Error deleting the file. Please try again later.");
-    }
+    await handleDelete(fileToDelete.firebaseKey); // Use fileToDelete.firebaseKey
+    setIsDeleteModalOpen(false);
+    setFileToDelete(null);
   };
+
   const handleCancelDelete = () => {
     setIsDeleteModalOpen(false);
-    setFileToDelete(null); // Reset fileToDelete state
+    setFileToDelete(null);
   };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen mb-10 relative font-inter">
-  <StorageHeader email={email} /> {/* Use the new StorageHeader component */}
-      {/* Recents Section */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-left text-gray-700 mb-6">
-          Recent
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-          {sortedFiles.slice(0, 4).map((file, index) => {
-            // Light pastel color palette for cards
-            const pastelColors = [
-              "bg-indigo-50",
-              "bg-blue-50",
-              "bg-green-50",
-              "bg-pink-50",
-            ];
-            const colorClass = pastelColors[index % pastelColors.length]; // Simple cycle through the colors
+      <StorageHeader email={email} />
 
-            return (
+      <div className="relative mb-8 max-w-2xl mx-auto">
+        <div className="flex items-center bg-white rounded-lg shadow-lg border border-gray-300 hover:border-blue-500 transition-all duration-200">
+          {searchSuggestions.length > 0 && (
+            <button
+  onClick={() => setSearchSuggestions([])}
+  className="text-gray-600 hover:text-gray-900 transition-all duration-150 ml-3"
+  title="Clear Suggestions"  // Tooltip text
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-5 w-5"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M6 18L18 6M6 6l12 12"
+    />
+  </svg>
+</button>
+
+          )}
+
+          {/* Search Input */}
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Search files..."
+            onClick={handleInputClick} // Prevent click from closing the dropdown
+            className="w-full px-6 py-3 rounded-lg focus:outline-none text-gray-700 placeholder-gray-400 placeholder-opacity-60"
+          />
+
+          <DateFilter onFilterChange={handleDateFilterChange} />
+
+          {/* Clear Search Button */}
+          {searchQuery && (
+            <button
+              onClick={handleClearSearch}
+              className="px-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Suggestions Dropdown */}
+        {searchSuggestions.length > 0 && (
+          <div className="absolute top-full left-0 right-0 bg-white mt-2 rounded-lg shadow-lg z-50 border border-gray-100 max-h-48 overflow-y-auto">
+            {searchSuggestions.map((suggestion, index) => (
+              <div
+                key={suggestion}
+                onClick={() => handleSuggestionClick(suggestion)}
+                className={`p-3 hover:bg-blue-100 cursor-pointer transition-colors ${
+                  index === highlightedIndex ? "bg-blue-100" : ""
+                } ${index === 0 ? "rounded-t-lg" : ""} ${
+                  index === searchSuggestions.length - 1 ? "rounded-b-lg" : ""
+                }`}
+              >
+                <span className="text-gray-700">
+                  {highlightMatch(suggestion, searchQuery)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {filteredFiles.length === 0 && !isLoading && (
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-4 text-6xl">🔍</div>
+          <p className="text-gray-600 mb-2">
+            {searchQuery
+              ? "No files found matching your search"
+              : "No files available"}
+          </p>
+          <p className="text-gray-500 text-sm">
+            {searchQuery
+              ? "Try different keywords or check the spelling"
+              : "Upload new files to get started"}
+          </p>
+        </div>
+      )}
+
+      {filteredFiles.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-6">Recent</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredFiles.slice(0, 4).map((file, index) => (
               <div
                 key={index}
-                className={`${colorClass} p-3 shadow-md rounded-lg cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-102 hover:shadow-lg`}
+                className="bg-white p-3 shadow-md rounded-lg cursor-pointer hover:shadow-lg transition-all"
                 onClick={() => handleFileClick(file)}
               >
                 <div className="relative w-full h-32 mb-2 overflow-hidden rounded-lg">
                   <img
                     src={file.secure_url}
                     alt={file.original_filename}
-                    className="w-full h-full object-cover rounded-lg transition-all duration-300 ease-in-out hover:scale-105"
+                    className="w-full h-full object-cover"
                     loading="lazy"
                   />
                 </div>
-                <p className="text-base font-light text-center text-gray-700 truncate">
+                <p className="text-base text-center text-gray-700 truncate">
                   {file.original_filename}
                 </p>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
-      {/* Filters Section */}
-      <div className="flex items-center mb-6">
-        <label
-          htmlFor="search"
-          className="text-lg font-semibold text-gray-700 mr-2"
-        >
-          Search:
-        </label>
-        <input
-          id="search"
-          type="text"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          className="p-2 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-400 transition duration-200"
-          placeholder="Search by file name"
-        />
-      </div>
-      {/* Reset Filters Button */}
-      <button
-        onClick={handleResetFilters}
-        className="flex items-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-2 md:px-3 rounded-xl shadow-lg hover:scale-105 transform transition duration-300 ease-in-out focus:outline-none hover:from-blue-400 hover:to-indigo-500 my-1 md:my-3 sm:py-1.5 sm:px-2 sm:text-sm"
-      >
-        <FaSyncAlt className="mr-1 md:mr-3 text-xs transform transition-all duration-300 md:text-lg" />
-        <span className="font-semibold text-xs md:text-lg">Reset Filters</span>
-      </button>
-      {isLoading && (
-        <div className="flex justify-center items-center space-x-4 p-6">
-          <div className="animate-spin border-t-4 border-blue-500 w-12 h-12 border-solid rounded-full"></div>
-          <span className="text-lg text-gray-700 font-semibold">
-            Loading...
-          </span>
-        </div>
-      )}
-      {error && <div className="text-center text-red-600">{error}</div>}
-      {filteredFiles.length === 0 && !isLoading && !error && (
-        <div className="text-center text-gray-600">No files found.</div>
       )}
 
-      {/* Table Section */}
-      <div className="transition-all duration-300 ease-in-out">
-        <div className="hidden sm:block">
+      {filteredFiles.length > 0 && (
+        <div className="transition-all duration-300">
           <table className="min-w-full table-auto border-collapse border border-gray-200 rounded-lg shadow-lg">
-            <thead>
-              <tr className="bg-blue-100 text-gray-700">
+            <thead className="bg-blue-100 text-gray-700">
+              <tr>
                 <th className="py-3 px-4 border-b text-left">File Name</th>
                 <th className="py-3 px-4 border-b text-left">Size</th>
                 <th className="py-3 px-4 border-b text-left">Dimensions</th>
@@ -319,11 +431,11 @@ useEffect(() => {
               </tr>
             </thead>
             <tbody>
-              {filteredFiles.map((file, index) => (
+              {filteredFiles.map((file) => (
                 <tr
-                  key={index}
-                  className="border-b hover:bg-gray-200 hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer"
-                  onClick={() => handleFileClick(file)} // <-- Add this line to open sidebar when clicking a table row
+                  key={file.public_id}
+                  className="border-b hover:bg-gray-200 cursor-pointer"
+                  onClick={() => handleFileClick(file)}
                 >
                   <td className="py-3 px-4 flex items-center">
                     {file.format.startsWith("image/") && (
@@ -337,7 +449,7 @@ useEffect(() => {
                     )}
                     {getFileTypeIcon(file.format)}
                     <span className="ml-2 text-gray-700">
-                      {file.original_filename}
+                      {highlightMatch(file.original_filename, searchQuery)}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-gray-600">
@@ -356,16 +468,16 @@ useEffect(() => {
                         e.stopPropagation();
                         handleDownload(file.secure_url, file.original_filename);
                       }}
-                      className="text-blue-500 hover:underline focus:outline-none"
+                      className="text-blue-500 hover:underline"
                     >
                       Download
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteClick(file); // Open delete confirmation modal
+                        handleDeleteClick(file);
                       }}
-                      className="text-red-500 hover:underline focus:outline-none ml-4"
+                      className="text-red-500 hover:underline ml-4"
                     >
                       Delete
                     </button>
@@ -374,8 +486,8 @@ useEffect(() => {
               ))}
             </tbody>
           </table>
-          {/* Load More Button (Only shown when there are more files to load) */}
-          {filteredFiles.length > 0 && !isLoading && hasMoreFiles && (
+
+          {hasMoreFiles && (
             <div className="flex justify-center mt-6">
               <button
                 onClick={handleLoadMore}
@@ -386,71 +498,11 @@ useEffect(() => {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Mobile-friendly 2-Column Layout */}
-      <div className="sm:hidden">
-        <div className="grid grid-cols-2 gap-4">
-          {filteredFiles.map((file, index) => (
-            <div
-              key={index}
-              className="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out"
-            >
-              <div className="flex flex-col items-center">
-                <div className="w-full h-32 mb-3 overflow-hidden rounded-lg">
-                  <img
-                    src={file.secure_url}
-                    alt={file.original_filename}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </div>
-
-                <p className="text-sm font-semibold text-center text-gray-800">
-                  {file.original_filename}
-                </p>
-                <p className="text-xs text-center text-gray-600">
-                  {formatFileSize(file.size)}
-                </p>
-                <p className="text-xs text-center text-gray-600">
-                  {file.width}x{file.height}
-                </p>
-                <p className="text-xs text-center text-gray-600">
-                  {formatToMonthDayYear(file.created_at)}
-                </p>
-                <p className="text-xs text-center text-gray-600">
-                  {file.format}
-                </p>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDownload(file.secure_url, file.original_filename);
-                  }}
-                  className="mt-3 w-full bg-blue-500 text-white py-1.5 rounded-lg hover:bg-blue-600 transition duration-150"
-                >
-                  Download
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Load More Button (Only shown when there are more files to load) */}
-        {filteredFiles.length > 0 && !isLoading && hasMoreFiles && (
-          <div className="flex justify-center mt-6">
-            <button
-              onClick={handleLoadMore}
-              className="border-2 border-blue-500 text-blue-500 py-2 px-4 hover:bg-blue-500 hover:text-white transition duration-200"
-            >
-              Load More
-            </button>
-          </div>
-        )}
-      </div>
+      )}
 
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg w-1/3">
-            {/* Header with light red background for both the delete info and question */}
             <div className="bg-red-100 p-4 rounded-t-lg">
               <h3 className="text-2xl font-semibold text-gray-700">
                 Delete file
@@ -459,32 +511,30 @@ useEffect(() => {
                 Are you sure you want to delete this file?
               </h3>
             </div>
-
-            {/* Info about deleting data */}
             <p className="text-sm text-gray-600 px-6 py-2">
-              Doing so will permanently delete the file at this location,
-              including in the database.
+              This action cannot be undone and will permanently delete the file.
             </p>
-
             <div className="flex justify-between px-6 py-2">
               <button
-                onClick={handleConfirmDelete}
-                className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-all duration-200"
-              >
-                Delete
-              </button>
-              <button
                 onClick={handleCancelDelete}
-                className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-all duration-200"
+                className="text-gray-500 border border-gray-300 py-2 px-4 rounded-lg hover:bg-gray-100"
               >
                 Cancel
               </button>
+              <button
+  onClick={(e) => {
+    e.stopPropagation();
+    handleConfirmDelete(); // Call handleConfirmDelete directly
+  }}
+  className="text-red-500 hover:underline ml-4"
+>
+  Delete
+</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Replace the existing selectedFile sidebar with the new component */}
       <FileDetailSidebar
         selectedFile={selectedFile}
         onClose={handleCloseSidebar}
@@ -493,19 +543,9 @@ useEffect(() => {
         formatToMonthDayYear={formatToMonthDayYear}
       />
 
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+      <ToastContainer position="top-right" autoClose={5000} />
     </div>
   );
 }
 
-export default Media;
+export default PlacementDocs;

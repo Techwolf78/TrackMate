@@ -23,7 +23,7 @@ const Navbar = ({ isAuthenticated }) => {
   const isHome = location.pathname === '/' || location.pathname === '/home';
   const isSalesOrPlacement = location.pathname === '/sales' || location.pathname === '/placement';
   const isReportActive = isSalesOrPlacement;
-  const isProfileActive = location.pathname === '/underconstruction';
+  const isProfileActive = location.pathname === '/spent';
   const isReportDisabled = !isSalesOrPlacement;
 
   const handleReportClick = () => {
@@ -84,7 +84,7 @@ const Navbar = ({ isAuthenticated }) => {
 
       <div className="text-center">
         <Link
-          to="/underconstruction"
+          to="/spent"
           className={`flex flex-col items-center text-sm px-4 py-2 rounded-full transition-colors duration-300 ${isProfileActive ? 'text-green-500' : 'text-white'}`}
         >
           <FaUserAlt size={24} className={isProfileActive ? 'text-green-500' : 'text-white'} />

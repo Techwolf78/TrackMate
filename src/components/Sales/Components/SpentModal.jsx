@@ -1,214 +1,240 @@
-import PropTypes from 'prop-types';
-import { useState } from 'react';
+import PropTypes from "prop-types";
+import { useState } from "react";
+import { ref, set } from "firebase/database";
+import { db } from "../../../firebaseConfig";
+import CollegeList from "./CollegeList"; // Import the CollegeList component
 
 const SpentModal = ({ isOpen, onClose, handleSave }) => {
   const [allocatedAmount, setAllocatedAmount] = useState("");
   const [spentAmount, setSpentAmount] = useState("");
-  const [visitType, setVisitType] = useState("");  // New state for Visit Type
-  const [college, setCollege] = useState("");      // New state for College
-  const [otherCollegeName, setOtherCollegeName] = useState("");  // State for other college name
-  const [additionalColleges, setAdditionalColleges] = useState([]);  // New state for dynamic colleges
+  const [visitType, setVisitType] = useState("");
+  const [college, setCollege] = useState("");
+  const [otherCollegeName, setOtherCollegeName] = useState("");
+  const [additionalColleges, setAdditionalColleges] = useState([]);
+  const [food, setFood] = useState("");
+  const [fuel, setFuel] = useState("");
+  const [stay, setStay] = useState("");
+  const [toll, setToll] = useState("");
 
   if (!isOpen) return null;
 
-  // List of predefined colleges
-  const colleges = [
-    "College A", "College B", "College C", "College D", 
-    "College E", "College F", "College G", "College H", 
-    "College I", "College J"
-  ];
-
-  // Handle adding new college fields
   const handleAddCollege = () => {
     setAdditionalColleges([...additionalColleges, ""]);
   };
 
-  // Handle changing the value of a specific college field
   const handleCollegeChange = (index, value) => {
     const newColleges = [...additionalColleges];
     newColleges[index] = value;
     setAdditionalColleges(newColleges);
   };
 
-  // Handle deleting a specific college field
   const handleDeleteCollege = (index) => {
     const newColleges = additionalColleges.filter((_, i) => i !== index);
     setAdditionalColleges(newColleges);
   };
 
   const handleFormSubmit = () => {
-    const spentData = {
-      allocatedAmount,
-      spentAmount,
-      visitType,
-      college: college === "Other" ? otherCollegeName : college,  // Handle "Other" option
-      additionalColleges,
-    };
-    handleSave(spentData); // Pass data to parent component
-    // Reset form fields
+    // Calculate the total number of colleges (including the main college and additional colleges)
+    const totalColleges =
+      additionalColleges.length +
+      (college === "Other" ? 1 : 0) +
+      (college !== "" && college !== "Other" ? 1 : 0);
+  
+    // Calculate the split amounts for food, fuel, stay, and toll
+    const foodSplit = (parseFloat(food) || 0) / totalColleges;
+    const fuelSplit = (parseFloat(fuel) || 0) / totalColleges;
+    const staySplit = (parseFloat(stay) || 0) / totalColleges;
+    const tollSplit = (parseFloat(toll) || 0) / totalColleges;
+  
+    // Create an array to hold the spent data for each college
+    const spentDataArray = [];
+  
+    // Add the main college (or selected college)
+    const mainCollege = college === "Other" ? otherCollegeName : college;
+    if (college !== "") {  // Ensure the selected college is added
+      spentDataArray.push({
+        allocatedAmount: allocatedAmount / totalColleges,
+        spentAmount: spentAmount / totalColleges,
+        visitType,
+        college: mainCollege, // Save the selected college
+        food: foodSplit,
+        fuel: fuelSplit,
+        stay: staySplit,
+        toll: tollSplit,
+      });
+    }
+  
+    // Add the additional colleges
+    additionalColleges.forEach((collegeName) => {
+      spentDataArray.push({
+        allocatedAmount: allocatedAmount / totalColleges,
+        spentAmount: spentAmount / totalColleges,
+        visitType,
+        college: collegeName, // This is for additional colleges
+        food: foodSplit,
+        fuel: fuelSplit,
+        stay: staySplit,
+        toll: tollSplit,
+      });
+    });
+  
+    // Save each spent data record to the database
+    spentDataArray.forEach((spentData) => {
+      const newSpentRef = ref(db, "sales_spent/" + Date.now());
+      set(newSpentRef, spentData)
+        .then(() => {
+          console.log("Data saved successfully!");
+          handleSave(spentData);
+        })
+        .catch((error) => {
+          console.error("Error saving data:", error);
+        });
+    });
+  
+    // Reset the form fields after submission
     setAllocatedAmount("");
     setSpentAmount("");
     setVisitType("");
     setCollege("");
     setOtherCollegeName("");
     setAdditionalColleges([]);
+    setFood("");
+    setFuel("");
+    setStay("");
+    setToll("");
   };
+  
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 px-2 mb-12">
-      <div className="bg-white p-4 rounded-lg max-w-lg w-full relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-white p-6 rounded-lg max-w-lg w-full relative max-h-[90vh] overflow-y-auto shadow-lg">
         <div
           onClick={onClose}
           className="absolute top-2 right-2 w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center cursor-pointer"
         >
           <span className="font-bold text-xl">×</span>
         </div>
-        <h3 className="text-xl text-gray-700 font-semibold">Spent</h3>
 
-        {/* Visit Type Dropdown */}
-        <div className="mt-4">
-          <label className="text-gray-700 font-medium">Visit Type:</label>
+        <h3 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+          Spent
+        </h3>
+
+        <div className="space-y-4">
           <select
             value={visitType}
             onChange={(e) => setVisitType(e.target.value)}
-            className="border border-gray-300 rounded-md w-full p-2 mt-2"
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
           >
-            <option value="">Select Visit Type</option>
+            <option value="">Visit Type</option>
             <option value="Single Visit">Single Visit</option>
             <option value="Multiple Visit">Multiple Visit</option>
           </select>
-        </div>
 
-        {/* College Dropdown */}
-        <div className="mt-4">
-          <label className="text-gray-700 font-medium">College:</label>
           <select
             value={college}
             onChange={(e) => setCollege(e.target.value)}
-            className="border border-gray-300 rounded-md w-full p-2 mt-2"
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
           >
             <option value="">Select College</option>
-            {colleges.map((col, index) => (
-              <option key={index} value={col}>{col}</option>
-            ))}
-            <option value="Other">Other</option>
+            <CollegeList /> {/* Use CollegeList here */}
           </select>
-        </div>
 
-        {/* Conditional input for "Other College Name" */}
-        {college === "Other" && (
-          <div className="mt-4">
-            <label className="text-gray-700 font-medium">Other College Name:</label>
+          {college === "Other" && (
             <input
               type="text"
               value={otherCollegeName}
               onChange={(e) => setOtherCollegeName(e.target.value)}
-              className="border border-gray-300 rounded-md w-full p-2 mt-2"
-              placeholder="Enter College Name"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+              placeholder="Enter Other College Name"
             />
-          </div>
-        )}
+          )}
 
-        {/* Additional Colleges - Dynamic Fields */}
-        {visitType === "Multiple Visit" && (
-          <>
-            {additionalColleges.map((college, index) => (
-              <div key={index} className="mt-4">
-                {/* College Input Field */}
-                <div>
-                  <label className="text-gray-700 font-medium">College Name {index + 2}:</label>
-                  <input
-                    type="text"
-                    value={college}
-                    onChange={(e) => handleCollegeChange(index, e.target.value)}
-                    className="border border-gray-300 rounded-md w-full p-2 mt-2"
-                    placeholder={`Enter college name ${index + 2}`}
-                  />
-                </div>
-
-                {/* Delete Icon - Positioned Below the Input Field */}
-                <div className="flex justify-end mt-2">
-                  <button
-                    onClick={() => handleDeleteCollege(index)}
-                    className="text-red-500 hover:text-red-700 flex items-center"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    <span className="ml-1">Delete</span>
-                  </button>
-                </div>
+          {visitType === "Multiple Visit" &&
+            additionalColleges.map((college, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={college}
+                  onChange={(e) => handleCollegeChange(index, e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+                  placeholder={`College ${index + 2}`}
+                />
+                <button
+                  onClick={() => handleDeleteCollege(index)}
+                  className="text-red-500 hover:text-red-700 transition"
+                >
+                  ✖
+                </button>
               </div>
             ))}
-            {/* "Add+" Button */}
+
+          {visitType === "Multiple Visit" && (
             <button
               onClick={handleAddCollege}
-              className="flex items-center justify-center mt-4 text-indigo-500 hover:text-indigo-700 border border-indigo-500 hover:border-indigo-700 rounded-md px-3 py-1.5 text-sm transition-all"
+              className="w-full p-3 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              <span>Add College</span>
+              Add College
             </button>
-          </>
-        )}
+          )}
 
-        {/* Allocated Amount Field */}
-        <div className="mt-4">
-          <label className="text-gray-700 font-medium">Allocated Amount:</label>
           <input
             type="number"
             value={allocatedAmount}
             onChange={(e) => setAllocatedAmount(e.target.value)}
-            className="border border-gray-300 rounded-md w-full p-2 mt-2"
-            placeholder="Enter Allocated Amount"
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            placeholder="Allocated Amount"
           />
-        </div>
 
-        {/* Spent Amount Field */}
-        <div className="mt-4">
-          <label className="text-gray-700 font-medium">Spent Amount:</label>
           <input
             type="number"
             value={spentAmount}
             onChange={(e) => setSpentAmount(e.target.value)}
-            className="border border-gray-300 rounded-md w-full p-2 mt-2"
-            placeholder="Enter Spent Amount"
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            placeholder="Spent Amount"
+          />
+
+          <input
+            type="number"
+            value={food}
+            onChange={(e) => setFood(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            placeholder="Food Amount"
+          />
+
+          <input
+            type="number"
+            value={fuel}
+            onChange={(e) => setFuel(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            placeholder="Fuel Amount"
+          />
+
+          <input
+            type="number"
+            value={stay}
+            onChange={(e) => setStay(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            placeholder="Stay Amount"
+          />
+
+          <input
+            type="number"
+            value={toll}
+            onChange={(e) => setToll(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            placeholder="Toll Amount"
           />
         </div>
 
-        {/* Buttons for Cancel and Save */}
-        <div className="mt-4 flex justify-between">
+        <div className="mt-6 flex justify-between">
           <button
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition"
             onClick={onClose}
           >
             Cancel
           </button>
           <button
-            className="bg-indigo-500 text-white px-4 py-2 rounded-md"
+            className="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600 transition"
             onClick={handleFormSubmit}
           >
             Save

@@ -3,16 +3,18 @@ import { getStorage } from "firebase/storage";
 import { getDatabase } from "firebase/database";
 import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
+// Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyCXx4-4zpjt0C6em8ZmhVruGYHc9AJsENs",
-  authDomain: "visit-app-98ce3.firebaseapp.com",
-  databaseURL: "https://visit-app-98ce3-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "visit-app-98ce3",
-  storageBucket: "visit-app-98ce3.firebasestorage.app",
-  messagingSenderId: "253059760151",
-  appId: "1:253059760151:web:3a726e6c9414969076dc52",
-  measurementId: "G-J94K7M9HF0"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
+
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);

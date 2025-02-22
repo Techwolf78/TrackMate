@@ -5,7 +5,7 @@ import { db } from "../../../firebaseConfig";
 import CollegeList from "./CollegeList"; // Import the CollegeList component
 import { format } from "date-fns"; // Using date-fns for date formatting
 
-const SpentModal = ({ isOpen, onClose, handleSave }) => {
+const SalesSpentModal = ({ isOpen, onClose, handleSave }) => {
   const [allocatedAmount, setAllocatedAmount] = useState("");
   const [spentAmount, setSpentAmount] = useState("");
   const [visitType, setVisitType] = useState("");
@@ -262,10 +262,10 @@ const SpentModal = ({ isOpen, onClose, handleSave }) => {
   );
 };
 
-SpentModal.propTypes = {
+SalesSpentModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   handleSave: PropTypes.func.isRequired,
 };
 
-export default SpentModal;
+export default SalesSpentModal;

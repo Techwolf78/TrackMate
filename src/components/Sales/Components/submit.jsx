@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { db } from "../../../firebaseConfig";
 import { ref, set } from "firebase/database";
-import SpentModal from "./SpentModal";
+import SpentModal from "./SalesSpentModal";
 import BillsModal from "./BillsModal";
 import PlacementDocsModal from "./PlacementDocsModal"; // Import the new modal
 

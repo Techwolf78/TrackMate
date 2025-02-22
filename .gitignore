@@ -1,6 +1,3 @@
-# Ignore environment files
-.env
-
 # Logs
 logs
 *.log
@@ -10,7 +7,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Node modules and build output
 node_modules
 dist
 dist-ssr
